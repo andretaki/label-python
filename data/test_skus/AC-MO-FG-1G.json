@@ -1,0 +1,21 @@
+{
+  "sku": "AC-MO-FG-1G",
+  "product_name": "White Mineral Oil",
+  "grade_or_concentration": "Food Grade NF/USP",
+  "product_family": "oils",
+  "package_type": "gallon_1",
+  "net_contents_us": "1 Gallon",
+  "net_contents_metric": "3.78 L",
+  "cas_number": "8042-47-5",
+  "is_mixture": false,
+  "upc_gtin12": "850123456792",
+  "hazcom_applicable": false,
+  "dot_regulated": false,
+  "nfpa_health": 0,
+  "nfpa_fire": 1,
+  "nfpa_reactivity": 0,
+  "nfpa_special": null,
+  "sds_url": "https://www.alliancechemical.com/sds/white-mineral-oil-fg",
+  "coa_request_url": "https://www.alliancechemical.com/coa-request",
+  "landing_page_url": "https://www.alliancechemical.com/products/white-mineral-oil-food-grade"
+}

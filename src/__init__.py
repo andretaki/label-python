@@ -1,0 +1,1 @@
+"""Alliance Chemical Label Generator."""

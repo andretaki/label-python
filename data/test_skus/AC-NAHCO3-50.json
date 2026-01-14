@@ -1,0 +1,21 @@
+{
+  "sku": "AC-NAHCO3-50",
+  "product_name": "Sodium Bicarbonate",
+  "grade_or_concentration": "USP/FCC Grade",
+  "product_family": "dry_goods",
+  "package_type": "bag_50lb",
+  "net_contents_us": "50 lb",
+  "net_contents_metric": "22.68 kg",
+  "cas_number": "144-55-8",
+  "is_mixture": false,
+  "upc_gtin12": "850123456808",
+  "hazcom_applicable": false,
+  "dot_regulated": false,
+  "nfpa_health": 1,
+  "nfpa_fire": 0,
+  "nfpa_reactivity": 0,
+  "nfpa_special": null,
+  "sds_url": "https://www.alliancechemical.com/sds/sodium-bicarbonate-usp",
+  "coa_request_url": "https://www.alliancechemical.com/coa-request",
+  "landing_page_url": "https://www.alliancechemical.com/products/sodium-bicarbonate-usp"
+}
