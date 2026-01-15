@@ -257,3 +257,245 @@ SCIENTIFIC_FONT_SIZES = {
     "footer": 7,
     "label": 6,
 }
+
+
+# =============================================================================
+# ORGANIC FLOW STYLE (Premium/Futuristic)
+# =============================================================================
+
+# Organic color palette - Warm to Cool diagonal flow
+ORGANIC_COLORS = {
+    # Warm zone (top-left)
+    "warm_white": (1.0, 0.973, 0.941),           # #FFF8F0
+    "warm_peach": (1.0, 0.91, 0.84),             # #FFE8D6
+    "warm_cream": (0.992, 0.965, 0.925),         # #FDF6EC
+
+    # Cool zone (bottom-right)
+    "cool_teal": (0, 0.831, 0.667),              # #00D4AA
+    "cool_teal_dark": (0, 0.706, 0.588),         # #00B496
+    "cool_white": (0.941, 0.98, 0.98),           # #F0FAFA
+    "cool_gray": (0.91, 0.957, 0.949),           # #E8F4F2
+
+    # Frosted glass
+    "frosted_white": (1.0, 1.0, 1.0),            # White (use with opacity)
+    "frosted_border": (0.9, 0.9, 0.92),          # Subtle gray border
+
+    # Signal words
+    "danger_red": (0.863, 0.149, 0.149),         # #DC2626
+    "warning_amber": (0.961, 0.62, 0.043),       # #F59E0B
+
+    # Text on gradient
+    "text_dark": (0.1, 0.1, 0.12),               # Near black
+    "text_secondary": (0.3, 0.3, 0.35),          # Dark gray
+    "text_muted": (0.5, 0.5, 0.55),              # Medium gray
+}
+
+# Gradient color stops for diagonal warm-to-cool
+ORGANIC_GRADIENT_STOPS = [
+    (0.0, ORGANIC_COLORS["warm_white"]),
+    (0.25, ORGANIC_COLORS["warm_peach"]),
+    (0.5, ORGANIC_COLORS["warm_cream"]),
+    (0.75, ORGANIC_COLORS["cool_gray"]),
+    (1.0, ORGANIC_COLORS["cool_white"]),
+]
+
+# Three-column widths for organic style
+ORGANIC_COL1_WIDTH_PCT = 0.22
+ORGANIC_COL2_WIDTH_PCT = 0.33
+ORGANIC_COL3_WIDTH_PCT = 0.45
+ORGANIC_COLUMN_GAP = 8
+
+# Header/footer dimensions
+ORGANIC_HEADER_HEIGHT = 40
+ORGANIC_FOOTER_HEIGHT = 22
+ORGANIC_FOOTER_PILL_WIDTH_PCT = 0.55  # 55% of label width
+
+# Frosted panel settings
+ORGANIC_FROSTED_OPACITY = 0.85
+ORGANIC_FROSTED_CORNER_RADIUS = 4
+
+# Font sizes for organic style
+ORGANIC_FONT_SIZES = {
+    "product_name_hero": 18,       # Large hero treatment with shadow lift
+    "product_name_min": 14,        # Minimum if wrapping
+    "product_code": 11,
+    "sku": 9,
+    "lot": 9,
+    "cas": 7,
+    "grade": 10,
+    "net_contents_us": 18,         # PROMINENT - key selling point
+    "net_contents_metric": 10,
+    "signal_word": 11,
+    "h_statement": 6,
+    "h_statement_min": 5,
+    "p_statement": 5,
+    "p_statement_min": 4.5,
+    "supplier": 5,
+    "footer": 7,
+    "label": 6,
+}
+
+# GHS settings for organic style
+ORGANIC_GHS_SIZE = 32
+ORGANIC_GHS_GAP = 4
+
+# Layered depth settings - blobs at different opacities for dimensional feel
+ORGANIC_BLOB_SETTINGS = {
+    # Warm blob - top-left, largest, lowest opacity (furthest back)
+    "warm_blob": {
+        "color": "warm_peach",
+        "opacity": 0.15,
+        "z_order": 1,  # Furthest back
+    },
+    # Center wave - spans columns, medium opacity (middle layer)
+    "center_wave": {
+        "color": "cool_gray",
+        "opacity": 0.12,
+        "z_order": 2,
+    },
+    # Cool blob - bottom-right, medium-high opacity (closer)
+    "cool_blob": {
+        "color": "cool_teal",
+        "opacity": 0.08,
+        "z_order": 3,  # Closest to content
+    },
+}
+
+# Product name "lift" effect - subtle shadow for dimensional pop
+ORGANIC_HERO_SHADOW = {
+    "offset_x": 1,
+    "offset_y": -2,
+    "blur_layers": 2,
+    "opacity": 0.15,
+}
+
+# Net contents highlight treatment
+ORGANIC_NET_CONTENTS_HIGHLIGHT = {
+    "glow_color": "cool_teal",
+    "glow_opacity": 0.15,
+    "underline": True,
+    "underline_color": "cool_teal",
+}
+
+# Frosted panel - gradient shows through
+ORGANIC_FROSTED_PANEL = {
+    "opacity": 0.82,              # Lower to let gradient show
+    "border_color": "cool_teal",  # Subtle teal accent
+    "border_opacity": 0.4,
+    "border_width": 1,
+    "corner_radius": 4,           # Sharp but slightly softened
+    "shadow_opacity": 0.08,
+}
+
+# Center column - NO container, free floating (airy zone)
+ORGANIC_CENTER_COLUMN = {
+    "has_container": False,       # Explicit: no frosted panel
+    "vertical_spacing": 10,       # Generous whitespace
+}
+
+# =============================================================================
+# PRODUCT FAMILY COLOR PALETTES
+# =============================================================================
+# Each product family gets a unique color palette so products are instantly
+# distinguishable by their visual signature.
+
+ORGANIC_PRODUCT_FAMILIES = {
+    "solvents": {
+        "name": "Solvents & Alcohols",
+        "warm_primary": (1.0, 0.945, 0.878),      # #FFF1E0 - Warm cream
+        "warm_secondary": (1.0, 0.878, 0.741),    # #FFE0BD - Soft peach
+        "cool_primary": (0.0, 0.831, 0.667),      # #00D4AA - Alliance teal
+        "cool_secondary": (0.878, 0.969, 0.957),  # #E0F7F4 - Cool teal white
+        "accent": (0.0, 0.710, 0.569),            # #00B591 - Deep teal
+    },
+    "acids": {
+        "name": "Acids & Corrosives",
+        "warm_primary": (1.0, 0.933, 0.918),      # #FFEEEA - Warm blush
+        "warm_secondary": (1.0, 0.796, 0.737),    # #FFCBBC - Soft coral
+        "cool_primary": (0.918, 0.341, 0.341),    # #EA5757 - Warning red
+        "cool_secondary": (0.969, 0.906, 0.906),  # #F7E7E7 - Cool pink white
+        "accent": (0.776, 0.231, 0.231),          # #C63B3B - Deep red
+    },
+    "bases": {
+        "name": "Bases & Alkalines",
+        "warm_primary": (0.969, 0.949, 0.988),    # #F7F2FC - Warm lavender
+        "warm_secondary": (0.918, 0.867, 0.969),  # #EADDF7 - Soft violet
+        "cool_primary": (0.608, 0.518, 0.827),    # #9B84D3 - Purple
+        "cool_secondary": (0.941, 0.933, 0.969),  # #F0EEF7 - Cool violet white
+        "accent": (0.478, 0.376, 0.702),          # #7A60B3 - Deep purple
+    },
+    "oils": {
+        "name": "Oils & Lubricants",
+        "warm_primary": (0.988, 0.973, 0.929),    # #FCF8ED - Warm cream
+        "warm_secondary": (0.969, 0.925, 0.804),  # #F7ECCD - Soft gold
+        "cool_primary": (0.608, 0.725, 0.490),    # #9BB97D - Sage green
+        "cool_secondary": (0.933, 0.953, 0.918),  # #EEF3EA - Cool sage white
+        "accent": (0.447, 0.584, 0.337),          # #729556 - Deep green
+    },
+    "food_grade": {
+        "name": "Food Grade",
+        "warm_primary": (1.0, 0.996, 0.960),      # #FFFEF5 - Clean cream
+        "warm_secondary": (0.957, 0.988, 0.937),  # #F4FCEF - Hint of green
+        "cool_primary": (0.400, 0.808, 0.616),    # #66CE9D - Fresh mint
+        "cool_secondary": (0.925, 0.976, 0.949),  # #ECF9F2 - Cool mint white
+        "accent": (0.259, 0.647, 0.471),          # #42A578 - Deep mint
+    },
+    "specialty": {
+        "name": "Specialty Chemicals",
+        "warm_primary": (0.996, 0.941, 0.965),    # #FEF0F6 - Warm pink
+        "warm_secondary": (0.988, 0.867, 0.918),  # #FCDDEA - Soft rose
+        "cool_primary": (0.376, 0.627, 0.918),    # #60A0EA - Electric blue
+        "cool_secondary": (0.925, 0.949, 0.984),  # #ECF2FB - Cool blue white
+        "accent": (0.251, 0.502, 0.800),          # #4080CC - Deep blue
+    },
+}
+
+# =============================================================================
+# BLOB SIGNATURE ARRANGEMENTS
+# =============================================================================
+# Each product family has a distinctive blob shape and arrangement pattern.
+
+ORGANIC_BLOB_SIGNATURES = {
+    "solvents": {
+        "description": "Flowing diagonal sweep - smooth, liquid feel",
+        "blob_count": 3,
+        "arrangement": "diagonal_sweep",
+        "curve_tension": 0.4,  # Smooth curves
+        "primary_blob_scale": 1.0,
+    },
+    "acids": {
+        "description": "Angular, aggressive curves - sharper, more energetic",
+        "blob_count": 2,
+        "arrangement": "angular_clash",
+        "curve_tension": 0.7,  # Sharper curves
+        "primary_blob_scale": 0.9,
+    },
+    "bases": {
+        "description": "Rising, lifting curves - upward energy",
+        "blob_count": 3,
+        "arrangement": "rising_flow",
+        "curve_tension": 0.5,
+        "primary_blob_scale": 1.0,
+    },
+    "oils": {
+        "description": "Smooth, slow, rounded - viscous feel",
+        "blob_count": 2,
+        "arrangement": "slow_pool",
+        "curve_tension": 0.2,  # Very smooth curves
+        "primary_blob_scale": 1.2,  # Larger blobs
+    },
+    "food_grade": {
+        "description": "Clean, contained, circular - safe/pure feel",
+        "blob_count": 2,
+        "arrangement": "contained_circles",
+        "curve_tension": 0.3,
+        "primary_blob_scale": 0.85,
+    },
+    "specialty": {
+        "description": "Dynamic, intersecting - premium/unique feel",
+        "blob_count": 3,
+        "arrangement": "dynamic_intersect",
+        "curve_tension": 0.5,
+        "primary_blob_scale": 1.1,
+    },
+}

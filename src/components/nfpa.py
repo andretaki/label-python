@@ -40,53 +40,72 @@ def draw_nfpa_diamond(canvas, x: float, y: float, size: float,
     # Half-size for drawing quadrants
     half = size / 2
 
-    # NFPA standard colors
+    # NFPA standard colors (adjusted for better appearance)
     colors = {
-        'fire': (1, 0, 0),           # Red - top
-        'health': (0, 0, 1),          # Blue - left
-        'reactivity': (1, 1, 0),      # Yellow - right
-        'special': (1, 1, 1),         # White - bottom
+        'fire': (1, 0, 0),              # Red - top
+        'health': (0, 0.33, 0.65),      # NFPA blue - left (less electric)
+        'reactivity': (1, 0.92, 0),     # Yellow - right (slightly warmer)
+        'special': (1, 1, 1),           # White - bottom
     }
 
     # =========================================
-    # DRAW THE FOUR QUADRANTS
+    # CALCULATE EDGE MIDPOINTS
+    # =========================================
+    # Each quadrant is a small diamond, not a triangle
+    # Vertices: center, two adjacent edge midpoints, one corner
+
+    mid_top_left = (center_x - half / 2, center_y + half / 2)
+    mid_top_right = (center_x + half / 2, center_y + half / 2)
+    mid_bot_right = (center_x + half / 2, center_y - half / 2)
+    mid_bot_left = (center_x - half / 2, center_y - half / 2)
+
+    # Corner points
+    top = (center_x, center_y + half)
+    right = (center_x + half, center_y)
+    bottom = (center_x, center_y - half)
+    left = (center_x - half, center_y)
+
+    # =========================================
+    # DRAW THE FOUR QUADRANTS (as sub-diamonds)
     # =========================================
 
     # FIRE (top quadrant) - Red
     canvas.setFillColor(Color(*colors['fire']))
     fire_path = canvas.beginPath()
-    fire_path.moveTo(center_x, center_y)           # Center
-    fire_path.lineTo(center_x - half, center_y)    # Left point
-    fire_path.lineTo(center_x, center_y + half)    # Top point
-    fire_path.lineTo(center_x + half, center_y)    # Right point
+    fire_path.moveTo(center_x, center_y)
+    fire_path.lineTo(*mid_top_left)
+    fire_path.lineTo(*top)
+    fire_path.lineTo(*mid_top_right)
     fire_path.close()
     canvas.drawPath(fire_path, fill=1, stroke=0)
 
     # HEALTH (left quadrant) - Blue
     canvas.setFillColor(Color(*colors['health']))
     health_path = canvas.beginPath()
-    health_path.moveTo(center_x, center_y)         # Center
-    health_path.lineTo(center_x - half, center_y)  # Left point
-    health_path.lineTo(center_x, center_y - half)  # Bottom point
+    health_path.moveTo(center_x, center_y)
+    health_path.lineTo(*mid_bot_left)
+    health_path.lineTo(*left)
+    health_path.lineTo(*mid_top_left)
     health_path.close()
     canvas.drawPath(health_path, fill=1, stroke=0)
 
     # REACTIVITY (right quadrant) - Yellow
     canvas.setFillColor(Color(*colors['reactivity']))
     react_path = canvas.beginPath()
-    react_path.moveTo(center_x, center_y)          # Center
-    react_path.lineTo(center_x + half, center_y)   # Right point
-    react_path.lineTo(center_x, center_y - half)   # Bottom point
+    react_path.moveTo(center_x, center_y)
+    react_path.lineTo(*mid_top_right)
+    react_path.lineTo(*right)
+    react_path.lineTo(*mid_bot_right)
     react_path.close()
     canvas.drawPath(react_path, fill=1, stroke=0)
 
-    # SPECIAL (bottom quadrant) - White (drawn over the blue/yellow)
+    # SPECIAL (bottom quadrant) - White
     canvas.setFillColor(Color(*colors['special']))
     special_path = canvas.beginPath()
-    special_path.moveTo(center_x, center_y)         # Center
-    special_path.lineTo(center_x - half * 0.5, center_y - half * 0.5)  # Bottom-left
-    special_path.lineTo(center_x, center_y - half)  # Bottom point
-    special_path.lineTo(center_x + half * 0.5, center_y - half * 0.5)  # Bottom-right
+    special_path.moveTo(center_x, center_y)
+    special_path.lineTo(*mid_bot_right)
+    special_path.lineTo(*bottom)
+    special_path.lineTo(*mid_bot_left)
     special_path.close()
     canvas.drawPath(special_path, fill=1, stroke=0)
 
@@ -97,7 +116,7 @@ def draw_nfpa_diamond(canvas, x: float, y: float, size: float,
     canvas.setStrokeColor(Color(0, 0, 0))  # Black
     canvas.setLineWidth(1.0)
 
-    # Outer diamond border
+    # Outer diamond border only (no internal cross lines)
     diamond_path = canvas.beginPath()
     diamond_path.moveTo(center_x, center_y + half)   # Top
     diamond_path.lineTo(center_x + half, center_y)   # Right
@@ -105,13 +124,6 @@ def draw_nfpa_diamond(canvas, x: float, y: float, size: float,
     diamond_path.lineTo(center_x - half, center_y)   # Left
     diamond_path.close()
     canvas.drawPath(diamond_path, fill=0, stroke=1)
-
-    # Internal dividing lines (cross pattern)
-    canvas.setLineWidth(0.75)
-    # Horizontal line through center
-    canvas.line(center_x - half, center_y, center_x + half, center_y)
-    # Vertical line through center (full)
-    canvas.line(center_x, center_y - half, center_x, center_y + half)
 
     # =========================================
     # DRAW THE RATING NUMBERS (CENTERED IN EACH QUADRANT)
@@ -122,21 +134,24 @@ def draw_nfpa_diamond(canvas, x: float, y: float, size: float,
     canvas.setFont(FONTS['bold'], font_size)
     canvas.setFillColor(Color(0, 0, 0))  # Black text
 
-    # Offset for visual centering in triangular quadrants
-    offset = half * 0.42
+    # Offset to center of each sub-diamond (halfway from center to corner)
+    offset = half * 0.5
+
+    # Vertical adjustment to center text visually
+    text_v_offset = font_size * 0.35
 
     # FIRE number (top quadrant)
-    canvas.drawCentredString(center_x, center_y + offset - (font_size * 0.35), str(fire))
+    canvas.drawCentredString(center_x, center_y + offset - text_v_offset, str(fire))
 
     # HEALTH number (left quadrant)
-    canvas.drawCentredString(center_x - offset, center_y - (font_size * 0.35), str(health))
+    canvas.drawCentredString(center_x - offset, center_y - text_v_offset, str(health))
 
     # REACTIVITY number (right quadrant)
-    canvas.drawCentredString(center_x + offset, center_y - (font_size * 0.35), str(reactivity))
+    canvas.drawCentredString(center_x + offset, center_y - text_v_offset, str(reactivity))
 
     # SPECIAL symbol (bottom quadrant) - if provided
     if special:
-        canvas.drawCentredString(center_x, center_y - offset - (font_size * 0.35), str(special))
+        canvas.drawCentredString(center_x, center_y - offset - text_v_offset, str(special))
 
 
 def draw_nfpa_with_label(canvas, x: float, y: float, width: float, height: float,
