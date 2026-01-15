@@ -14,6 +14,15 @@ def draw_nfpa_diamond(canvas, x: float, y: float, size: float,
 
     The diamond is positioned with (x, y) as the bottom-left of the bounding box.
 
+    Layout:
+              FIRE (red)
+               /\\
+              /  \\
+       HEALTH/    \\REACTIVITY
+       (blue) \\  / (yellow)
+               \\/
+            SPECIAL (white)
+
     Args:
         canvas: ReportLab canvas object
         x: X position (left edge of bounding box) in points
@@ -31,95 +40,103 @@ def draw_nfpa_diamond(canvas, x: float, y: float, size: float,
     # Half-size for drawing quadrants
     half = size / 2
 
-    # Define colors for each quadrant
+    # NFPA standard colors
     colors = {
-        'health': COLORS['nfpa_blue'],
-        'fire': COLORS['nfpa_red'],
-        'reactivity': COLORS['nfpa_yellow'],
-        'special': COLORS['nfpa_white'],
+        'fire': (1, 0, 0),           # Red - top
+        'health': (0, 0, 1),          # Blue - left
+        'reactivity': (1, 1, 0),      # Yellow - right
+        'special': (1, 1, 1),         # White - bottom
     }
 
-    # Draw background diamond (white border)
-    canvas.setStrokeColor(Color(*COLORS['black']))
-    canvas.setLineWidth(1)
+    # =========================================
+    # DRAW THE FOUR QUADRANTS
+    # =========================================
 
-    # Draw each quadrant as a filled polygon
-
-    # Fire (top) - Red
+    # FIRE (top quadrant) - Red
     canvas.setFillColor(Color(*colors['fire']))
-    top_path = canvas.beginPath()
-    top_path.moveTo(center_x, center_y)  # Center
-    top_path.lineTo(center_x - half, center_y)  # Left point
-    top_path.lineTo(center_x, center_y + half)  # Top point
-    top_path.lineTo(center_x + half, center_y)  # Right point
-    top_path.close()
-    canvas.drawPath(top_path, fill=1, stroke=0)
+    fire_path = canvas.beginPath()
+    fire_path.moveTo(center_x, center_y)           # Center
+    fire_path.lineTo(center_x - half, center_y)    # Left point
+    fire_path.lineTo(center_x, center_y + half)    # Top point
+    fire_path.lineTo(center_x + half, center_y)    # Right point
+    fire_path.close()
+    canvas.drawPath(fire_path, fill=1, stroke=0)
 
-    # Health (left) - Blue
+    # HEALTH (left quadrant) - Blue
     canvas.setFillColor(Color(*colors['health']))
-    left_path = canvas.beginPath()
-    left_path.moveTo(center_x, center_y)  # Center
-    left_path.lineTo(center_x - half, center_y)  # Left point
-    left_path.lineTo(center_x, center_y - half)  # Bottom point
-    left_path.close()
-    canvas.drawPath(left_path, fill=1, stroke=0)
+    health_path = canvas.beginPath()
+    health_path.moveTo(center_x, center_y)         # Center
+    health_path.lineTo(center_x - half, center_y)  # Left point
+    health_path.lineTo(center_x, center_y - half)  # Bottom point
+    health_path.close()
+    canvas.drawPath(health_path, fill=1, stroke=0)
 
-    # Reactivity (right) - Yellow
+    # REACTIVITY (right quadrant) - Yellow
     canvas.setFillColor(Color(*colors['reactivity']))
-    right_path = canvas.beginPath()
-    right_path.moveTo(center_x, center_y)  # Center
-    right_path.lineTo(center_x + half, center_y)  # Right point
-    right_path.lineTo(center_x, center_y - half)  # Bottom point
-    right_path.close()
-    canvas.drawPath(right_path, fill=1, stroke=0)
+    react_path = canvas.beginPath()
+    react_path.moveTo(center_x, center_y)          # Center
+    react_path.lineTo(center_x + half, center_y)   # Right point
+    react_path.lineTo(center_x, center_y - half)   # Bottom point
+    react_path.close()
+    canvas.drawPath(react_path, fill=1, stroke=0)
 
-    # Special (bottom) - White
+    # SPECIAL (bottom quadrant) - White (drawn over the blue/yellow)
     canvas.setFillColor(Color(*colors['special']))
-    # This is actually drawn as part of the left/right quadrants meeting at bottom
-    # For visual clarity, we just need the white section visible
+    special_path = canvas.beginPath()
+    special_path.moveTo(center_x, center_y)         # Center
+    special_path.lineTo(center_x - half * 0.5, center_y - half * 0.5)  # Bottom-left
+    special_path.lineTo(center_x, center_y - half)  # Bottom point
+    special_path.lineTo(center_x + half * 0.5, center_y - half * 0.5)  # Bottom-right
+    special_path.close()
+    canvas.drawPath(special_path, fill=1, stroke=0)
 
-    # Draw the outer diamond border
-    canvas.setStrokeColor(Color(*COLORS['black']))
-    canvas.setLineWidth(0.75)
+    # =========================================
+    # DRAW THE OUTER BORDER AND DIVIDING LINES
+    # =========================================
+
+    canvas.setStrokeColor(Color(0, 0, 0))  # Black
+    canvas.setLineWidth(1.0)
+
+    # Outer diamond border
     diamond_path = canvas.beginPath()
-    diamond_path.moveTo(center_x, center_y + half)  # Top
-    diamond_path.lineTo(center_x + half, center_y)  # Right
-    diamond_path.lineTo(center_x, center_y - half)  # Bottom
-    diamond_path.lineTo(center_x - half, center_y)  # Left
+    diamond_path.moveTo(center_x, center_y + half)   # Top
+    diamond_path.lineTo(center_x + half, center_y)   # Right
+    diamond_path.lineTo(center_x, center_y - half)   # Bottom
+    diamond_path.lineTo(center_x - half, center_y)   # Left
     diamond_path.close()
     canvas.drawPath(diamond_path, fill=0, stroke=1)
 
-    # Draw internal dividing lines
-    canvas.setLineWidth(0.5)
+    # Internal dividing lines (cross pattern)
+    canvas.setLineWidth(0.75)
     # Horizontal line through center
     canvas.line(center_x - half, center_y, center_x + half, center_y)
-    # Vertical line from center to bottom
-    canvas.line(center_x, center_y, center_x, center_y - half)
+    # Vertical line through center (full)
+    canvas.line(center_x, center_y - half, center_x, center_y + half)
 
-    # Draw rating numbers
-    font_size = FONT_SIZES.get('nfpa_rating', 9)
-    # Scale font size based on diamond size
-    scaled_font_size = font_size * (size / 72)  # 72pt = 1 inch baseline
-    scaled_font_size = max(6, min(scaled_font_size, 12))
+    # =========================================
+    # DRAW THE RATING NUMBERS (CENTERED IN EACH QUADRANT)
+    # =========================================
 
-    canvas.setFont(FONTS['bold'], scaled_font_size)
-    canvas.setFillColor(Color(*COLORS['black']))
+    # Font size scales with diamond size
+    font_size = max(8, min(16, size * 0.22))
+    canvas.setFont(FONTS['bold'], font_size)
+    canvas.setFillColor(Color(0, 0, 0))  # Black text
 
-    # Offset for positioning numbers in each quadrant
-    offset = half * 0.45
+    # Offset for visual centering in triangular quadrants
+    offset = half * 0.42
 
-    # Fire (top) - position above center
-    canvas.drawCentredString(center_x, center_y + offset - scaled_font_size / 3, str(fire))
+    # FIRE number (top quadrant)
+    canvas.drawCentredString(center_x, center_y + offset - (font_size * 0.35), str(fire))
 
-    # Health (left) - position left of center
-    canvas.drawCentredString(center_x - offset, center_y - scaled_font_size / 3, str(health))
+    # HEALTH number (left quadrant)
+    canvas.drawCentredString(center_x - offset, center_y - (font_size * 0.35), str(health))
 
-    # Reactivity (right) - position right of center
-    canvas.drawCentredString(center_x + offset, center_y - scaled_font_size / 3, str(reactivity))
+    # REACTIVITY number (right quadrant)
+    canvas.drawCentredString(center_x + offset, center_y - (font_size * 0.35), str(reactivity))
 
-    # Special (bottom) - if provided
+    # SPECIAL symbol (bottom quadrant) - if provided
     if special:
-        canvas.drawCentredString(center_x, center_y - offset - scaled_font_size / 3, special)
+        canvas.drawCentredString(center_x, center_y - offset - (font_size * 0.35), str(special))
 
 
 def draw_nfpa_with_label(canvas, x: float, y: float, width: float, height: float,

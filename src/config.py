@@ -217,3 +217,43 @@ PACKAGE_TO_TEMPLATE = {
     "bag_25lb": "dry",
     "bag_50lb": "dry",
 }
+
+
+# =============================================================================
+# SCIENTIFIC STYLE LAYOUT (Sigma-Aldrich style)
+# =============================================================================
+
+# Header/Footer dimensions
+SCIENTIFIC_HEADER_HEIGHT = 36
+SCIENTIFIC_HEADER_COLOR = (0 / 255, 180 / 255, 150 / 255)  # Solid teal #00B496
+SCIENTIFIC_FOOTER_HEIGHT = 20
+SCIENTIFIC_FOOTER_COLOR = (26 / 255, 26 / 255, 31 / 255)  # Dark gray
+
+# Three-column widths (percentages)
+SCIENTIFIC_COL1_WIDTH_PCT = 0.22
+SCIENTIFIC_COL2_WIDTH_PCT = 0.33
+SCIENTIFIC_COL3_WIDTH_PCT = 0.45
+SCIENTIFIC_COLUMN_GAP = 6
+
+# GHS settings (standard format, no cards)
+SCIENTIFIC_GHS_SIZE = 32
+SCIENTIFIC_GHS_GAP = 4
+SCIENTIFIC_GHS_GRID_COLS = 3
+
+# Font sizes - CRITICAL: Very small for statements
+SCIENTIFIC_FONT_SIZES = {
+    "product_code": 11,
+    "sku": 9,
+    "lot": 9,
+    "cas": 7,
+    "product_name": 12,
+    "grade": 9,
+    "net_contents_us": 14,
+    "net_contents_metric": 9,
+    "signal_word": 8,
+    "h_statement": 5,  # TINY - fits all statements
+    "p_statement": 5,  # TINY - fits all statements
+    "supplier": 5,
+    "footer": 7,
+    "label": 6,
+}

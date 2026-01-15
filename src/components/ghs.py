@@ -188,6 +188,58 @@ def draw_ghs_pictogram(canvas, pictogram_id: str, x: float, y: float,
     )
 
 
+def draw_ghs_pictograms_standard(
+    canvas, pictogram_ids: list, x: float, y: float, size: float = 32, gap: float = 4
+) -> float:
+    """
+    Draw GHS pictograms in STANDARD format.
+    NO cards, NO teal borders, NO shadows, NO glow.
+    Just the standard red diamond GHS symbols.
+
+    Args:
+        canvas: ReportLab canvas
+        pictogram_ids: List of GHS IDs like ["GHS02", "GHS07"]
+        x: Left edge position
+        y: TOP edge position (pictograms draw downward)
+        size: Size of each pictogram
+        gap: Space between pictograms
+
+    Returns:
+        Total height used by the pictogram grid
+    """
+    if not pictogram_ids:
+        return 0
+
+    cols = 3
+    num = len(pictogram_ids)
+    rows = (num + cols - 1) // cols
+
+    for i, pic_id in enumerate(pictogram_ids):
+        row = i // cols
+        col = i % cols
+
+        pic_x = x + (col * (size + gap))
+        pic_y = y - (row + 1) * (size + gap) + gap
+
+        # Get path to PNG
+        if hasattr(pic_id, "value"):
+            pic_id = pic_id.value
+        png_path = GHS_ASSETS_DIR / f"{pic_id}.png"
+
+        if png_path.exists():
+            canvas.drawImage(
+                str(png_path),
+                pic_x,
+                pic_y,
+                width=size,
+                height=size,
+                preserveAspectRatio=True,
+                mask="auto",
+            )
+
+    return rows * (size + gap)
+
+
 def draw_ghs_pictograms_grid(canvas, pictogram_ids: list, x: float, y: float,
                              width: float, height: float,
                              max_cols: int = 3, spacing: float = 8) -> float:

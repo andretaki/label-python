@@ -218,6 +218,82 @@ def calculate_line_height(font_size: float, spacing: float = 1.15) -> float:
     return font_size * spacing
 
 
+def draw_dense_paragraph(
+    canvas,
+    statements: list,
+    x: float,
+    y: float,
+    width: float,
+    font: str,
+    size: float,
+    color: tuple,
+    strip_codes: bool = True,
+) -> float:
+    """
+    Draw multiple statements as a single dense paragraph.
+    Uses tiny font and tight spacing to fit ALL text.
+
+    This is the KEY function for GHS compliance - all P-statements
+    must be visible on the label, even if in 5pt text.
+
+    Args:
+        canvas: ReportLab canvas
+        statements: List of statement strings
+        x: Left edge
+        y: TOP position (text flows down)
+        width: Max text width
+        font: Font name
+        size: Font size (typically 5pt)
+        color: RGB tuple
+        strip_codes: Remove "P210:" prefixes if True
+
+    Returns:
+        Y position after text (bottom of block)
+    """
+    from reportlab.lib.colors import Color
+
+    if not statements:
+        return y
+
+    canvas.setFont(font, size)
+    canvas.setFillColor(Color(*color))
+
+    # Combine statements, optionally stripping codes
+    if strip_codes:
+        clean = [re.sub(r"^[PH]\d+(\+[PH]\d+)*:\s*", "", s) for s in statements]
+    else:
+        clean = list(statements)
+
+    full_text = " ".join(clean)
+
+    # Word wrap
+    words = full_text.split()
+    lines = []
+    current_line = []
+
+    for word in words:
+        test = " ".join(current_line + [word])
+        if stringWidth(test, font, size) <= width:
+            current_line.append(word)
+        else:
+            if current_line:
+                lines.append(" ".join(current_line))
+            current_line = [word]
+
+    if current_line:
+        lines.append(" ".join(current_line))
+
+    # Draw lines
+    line_height = size * 1.1  # Tight spacing
+    current_y = y
+
+    for line in lines:
+        canvas.drawString(x, current_y - size, line)
+        current_y -= line_height
+
+    return current_y
+
+
 def fit_statements_to_area(statements: list[str], font_name: str,
                            max_size: float, min_size: float,
                            width: float, height: float,

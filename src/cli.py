@@ -18,11 +18,21 @@ def generate(
     sku: str = typer.Argument(..., help="SKU code (e.g., AC-IPA-99-55)"),
     lot: str = typer.Option("TEST-001", "--lot", "-l", help="Lot number"),
     output: Path = typer.Option(None, "--output", "-o", help="Output directory"),
+    style: str = typer.Option(
+        "standard", "--style", "-s", help="Label style: 'standard' or 'scientific'"
+    ),
 ):
     """Generate a label PDF for the given SKU."""
     try:
         output_dir = output or OUTPUT_DIR
-        output_path = generate_label(sku, lot, output_dir)
+
+        if style == "scientific":
+            from src.label_renderer_scientific import generate_scientific_label
+
+            output_path = generate_scientific_label(sku, lot, output_dir)
+        else:
+            output_path = generate_label(sku, lot, output_dir)
+
         typer.echo(f"✓ Label generated: {output_path}")
     except FileNotFoundError as e:
         typer.echo(f"✗ Error: {e}", err=True)
