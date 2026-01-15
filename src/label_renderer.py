@@ -20,7 +20,6 @@ from src.config import (
     MAIN_TOP, MAIN_BOTTOM,
     LEFT_COLUMN_LEFT, LEFT_COLUMN_WIDTH,
     RIGHT_COLUMN_LEFT, RIGHT_COLUMN_RIGHT,
-    QR_TOP_MARGIN, QR_SIZE,
     BARCODE_WIDTH, BARCODE_HEIGHT, BARCODE_RIGHT_MARGIN,
     GHS_CARD_SIZE, GHS_CARD_GAP,
     ELEMENT_GAP_SMALL, ELEMENT_GAP_MEDIUM,
@@ -28,9 +27,9 @@ from src.config import (
 )
 from src.models import SKUData
 from src.components.barcode import draw_barcode
-from src.components.qrcode import draw_qr_code
 from src.components.ghs import draw_ghs_pictograms_grid
 from src.components.dot import draw_dot_inline_badge
+from src.components.qrcode import draw_qr_code
 from src.utils.text_fitting import (
     wrap_text, fit_text_to_width, fit_statements_to_area,
     process_precautionary_statements, calculate_line_height,
@@ -118,17 +117,18 @@ class LabelRenderer:
         # Gradient background
         self._draw_header_gradient(y_base, HEADER_HEIGHT + MARGIN)
 
-        # Logo
+        # Logo (wide format)
         logo_path = ASSETS_DIR / "logo.png"
         if logo_path.exists():
-            logo_height = HEADER_HEIGHT - 12
-            logo_width = logo_height * 0.8
+            logo_width = 100
+            logo_height = HEADER_HEIGHT - 10
+            logo_y = y_base + (HEADER_HEIGHT - logo_height) / 2
             c.drawImage(
-                str(logo_path), CONTENT_LEFT, y_base + 8,
+                str(logo_path), CONTENT_LEFT, logo_y,
                 width=logo_width, height=logo_height,
                 preserveAspectRatio=True, anchor='sw', mask='auto'
             )
-            text_x = CONTENT_LEFT + logo_width + 10
+            text_x = CONTENT_LEFT + logo_width + 8
         else:
             text_x = CONTENT_LEFT
 
@@ -144,16 +144,21 @@ class LabelRenderer:
         c.drawString(text_x, y_base + HEADER_HEIGHT - 36,
                      f"{COMPANY_INFO['phone']} | {COMPANY_INFO['website']}")
 
-        # Barcode - RIGHT ALIGNED
-        barcode_x = CONTENT_RIGHT - BARCODE_WIDTH - BARCODE_RIGHT_MARGIN
-        barcode_y = y_base + (HEADER_HEIGHT - BARCODE_HEIGHT) / 2
+        # Barcode - RIGHT ALIGNED, centered in white card
+        card_padding = 4
+        card_width = BARCODE_WIDTH + (card_padding * 2)
+        card_height = BARCODE_HEIGHT + (card_padding * 2)
+        card_x = CONTENT_RIGHT - card_width - BARCODE_RIGHT_MARGIN
+        card_y = y_base + (HEADER_HEIGHT - card_height) / 2
 
         # White background with shadow
-        self._draw_shadow(barcode_x - 4, barcode_y - 3,
-                         BARCODE_WIDTH + 8, BARCODE_HEIGHT + 6, corner_radius=4)
+        self._draw_shadow(card_x, card_y, card_width, card_height, corner_radius=4)
         c.setFillColor(Color(*COLORS['white']))
-        c.roundRect(barcode_x - 4, barcode_y - 3,
-                   BARCODE_WIDTH + 8, BARCODE_HEIGHT + 6, 4, fill=1, stroke=0)
+        c.roundRect(card_x, card_y, card_width, card_height, 4, fill=1, stroke=0)
+
+        # Barcode centered in card
+        barcode_x = card_x + card_padding
+        barcode_y = card_y + card_padding
 
         try:
             draw_barcode(c, self.data.upc_gtin12, barcode_x, barcode_y,
@@ -191,11 +196,6 @@ class LabelRenderer:
         c.setFont(FONTS['regular'], FONT_SIZES['footer'])
         emergency_x = CONTENT_LEFT + stringWidth("Emergency: ", FONTS['bold'], FONT_SIZES['footer'])
         c.drawString(emergency_x, FOOTER_BOTTOM + 8, f"CHEMTEL {self.data.chemtel_number}")
-
-        # Supplier line
-        c.setFont(FONTS['regular'], FONT_SIZES['footer_small'])
-        c.setFillColor(Color(*COLORS['text_light_muted']))
-        c.drawRightString(CONTENT_RIGHT, FOOTER_BOTTOM + 8, "Supplied by Alliance Chemical")
 
     def _draw_shadow(self, x: float, y: float, width: float, height: float,
                     offset_y: float = -2, opacity: float = 0.12, corner_radius: float = 0):
@@ -349,48 +349,8 @@ class LabelRenderer:
         return y - block_height
 
     def _draw_left_column(self):
-        """Draw QR code and net contents at bottom of left column."""
-        c = self.c
-
-        # QR and net contents side by side at the bottom
-        qr_size = 45
-        bottom_y = MAIN_BOTTOM + 8
-
-        # QR on left
-        if self.data.sds_url:
-            qr_x = LEFT_COLUMN_LEFT
-            qr_y = bottom_y
-
-            # Teal border glow
-            self._draw_glow(qr_x - 2, qr_y - 2, qr_size + 4, qr_size + 4,
-                           COLORS['accent_teal'], radius=3, opacity=0.2, corner_radius=3)
-
-            # Teal border
-            c.setStrokeColor(Color(*COLORS['accent_teal']))
-            c.setLineWidth(2)
-            c.roundRect(qr_x - 2, qr_y - 2, qr_size + 4, qr_size + 4, 3, fill=0, stroke=1)
-
-            # White background for QR
-            c.setFillColor(Color(*COLORS['white']))
-            c.rect(qr_x, qr_y, qr_size, qr_size, fill=1, stroke=0)
-
-            # QR code
-            draw_qr_code(c, self.data.sds_url, qr_x, qr_y, qr_size)
-
-            # Label BELOW QR
-            c.setFont(FONTS['bold'], 5)
-            c.setFillColor(Color(*COLORS['accent_teal_dark']))
-            label = "SDS"
-            label_width = stringWidth(label, FONTS['bold'], 5)
-            c.drawString(qr_x + (qr_size - label_width) / 2, qr_y - 7, label)
-
-            # Net contents to the right of QR
-            net_x = qr_x + qr_size + 10
-        else:
-            net_x = LEFT_COLUMN_LEFT
-
-        # Net contents beside QR (or at left if no QR)
-        self._draw_net_contents(net_x, bottom_y)
+        """Draw net contents at bottom of left column."""
+        self._draw_net_contents(LEFT_COLUMN_LEFT, MAIN_BOTTOM + 8)
 
     def _draw_net_contents(self, x: float, y: float):
         """Draw net contents with teal underline."""
@@ -416,14 +376,15 @@ class LabelRenderer:
         c.drawString(x, y + 6, self.data.net_contents_metric)
 
     def _draw_right_column(self):
-        """Draw GHS pictograms, signal word, statements, DOT badge."""
+        """Draw GHS pictograms, signal word, statements, DOT badge, QR code."""
         c = self.c
-
-        if not self.data.hazcom_applicable:
-            return
-
         right_x = RIGHT_COLUMN_LEFT
         right_width = CONTENT_RIGHT - RIGHT_COLUMN_LEFT
+
+        # For non-hazmat products, just draw the QR code
+        if not self.data.hazcom_applicable:
+            self._draw_bottom_row(right_x, right_width)
+            return
 
         # GHS pictograms
         num_pictograms = len(self.data.ghs_pictograms)
@@ -436,10 +397,10 @@ class LabelRenderer:
             right_x, ghs_y, right_width, actual_ghs_height
         )
 
-        text_y = ghs_y - ELEMENT_GAP_MEDIUM
+        text_y = ghs_y - 6  # Tighter gap after GHS
         text_width = right_width
 
-        # Signal word badge
+        # Signal word badge (compact)
         if self.data.signal_word:
             signal = self.data.signal_word.value if hasattr(self.data.signal_word, 'value') else str(self.data.signal_word)
             signal_text = signal.upper()
@@ -447,8 +408,8 @@ class LabelRenderer:
             c.setFont(FONTS['bold'], FONT_SIZES['signal_word'])
             text_width_signal = stringWidth(signal_text, FONTS['bold'], FONT_SIZES['signal_word'])
 
-            pill_padding = 10
-            pill_height = FONT_SIZES['signal_word'] + 10
+            pill_padding = 6
+            pill_height = FONT_SIZES['signal_word'] + 6
             pill_width = text_width_signal + (pill_padding * 2)
 
             if signal.upper() == "DANGER":
@@ -489,8 +450,8 @@ class LabelRenderer:
                 c.setFillColor(Color(*COLORS['text_dark']))
 
             c.setFont(FONTS['bold'], FONT_SIZES['signal_word'])
-            c.drawString(right_x + pill_padding, text_y - pill_height + 6, signal_text)
-            text_y -= pill_height + ELEMENT_GAP_SMALL
+            c.drawString(right_x + pill_padding, text_y - pill_height + 4, signal_text)
+            text_y -= pill_height + 4  # Tighter gap after signal word
 
         # Hazard statements
         c.setFont(FONTS['regular'], FONT_SIZES['h_statement'])
@@ -504,22 +465,23 @@ class LabelRenderer:
                 c.drawString(right_x, text_y - FONT_SIZES['h_statement'], line)
                 text_y -= line_height
 
-        text_y -= 4
+        text_y -= 2
 
         # Separator
         c.setStrokeColor(Color(*COLORS['border_light']))
         c.setLineWidth(0.5)
         c.line(right_x, text_y, right_x + text_width * 0.6, text_y)
-        text_y -= 6
+        text_y -= 3
 
         # P-statements
         p_statements = process_precautionary_statements(
             self.data.precaution_statements, add_sds_note=True
         )
 
-        dot_badge_height = 22  # Account for badge + padding
-        if self.data.dot_regulated:
-            p_bottom = MAIN_BOTTOM + dot_badge_height + 4
+        # Reserve space for DOT badge (18pt) at bottom
+        bottom_row_height = 20
+        if self.data.sds_url or self.data.dot_regulated:
+            p_bottom = MAIN_BOTTOM + bottom_row_height + 4
         else:
             p_bottom = MAIN_BOTTOM + 4
 
@@ -542,23 +504,87 @@ class LabelRenderer:
             c.drawString(right_x, text_y - p_size, line)
             text_y -= p_line_height
 
-        # DOT badge
+        # DOT badge and QR code at bottom of right column
+        self._draw_bottom_row(right_x, right_width)
+
+    def _draw_bottom_row(self, right_x: float, right_width: float):
+        """Draw DOT badge and QR code side-by-side at bottom of right column."""
+        c = self.c
+        y_base = MAIN_BOTTOM + 8
+
         if self.data.dot_regulated:
+            # DOT badge on left (60% width), QR card on right
+            dot_width = right_width * 0.60
+            qr_size = 18  # Small to fit alongside DOT badge
+
+            # Draw DOT badge
             draw_dot_inline_badge(
-                c, right_x, MAIN_BOTTOM, right_width,
+                c, right_x, y_base, dot_width,
                 self.data.un_number or "",
                 self.data.hazard_class or "",
                 self.data.packing_group.value if self.data.packing_group else ""
             )
+
+            # Draw small QR code to the right of DOT badge (no card to save space)
+            if self.data.sds_url:
+                qr_x = right_x + (right_width * 0.68)
+                draw_qr_code(c, self.data.sds_url, qr_x, y_base, qr_size)
+        else:
+            # Non-hazmat: QR code larger (50pt) and centered
+            if self.data.sds_url:
+                qr_size = 50
+                qr_x = right_x + (right_width - qr_size) / 2
+                self._draw_qr_card(qr_x, y_base, qr_size)
+
+    def _draw_qr_card(self, x: float, y: float, qr_size: float):
+        """Draw QR code centered in a card with label below."""
+        c = self.c
+        padding = 2
+        label_height = 7
+        card_width = qr_size + (padding * 2)
+        card_height = qr_size + (padding * 2) + label_height
+
+        # Card background with shadow
+        self._draw_shadow(x, y, card_width, card_height, offset_y=-2, opacity=0.1, corner_radius=4)
+        c.setFillColor(Color(*COLORS['white']))
+        c.roundRect(x, y, card_width, card_height, 4, fill=1, stroke=0)
+
+        # Light border
+        c.setStrokeColor(Color(*COLORS['border_light']))
+        c.setLineWidth(0.5)
+        c.roundRect(x, y, card_width, card_height, 4, fill=0, stroke=1)
+
+        # QR code centered in card (above label area)
+        qr_x = x + padding
+        qr_y = y + padding + label_height
+        draw_qr_code(c, self.data.sds_url, qr_x, qr_y, qr_size)
+
+        # "SCAN FOR SDS" label centered at bottom of card
+        c.setFont(FONTS['regular'], FONT_SIZES['qr_label'])
+        c.setFillColor(Color(*COLORS['text_muted']))
+        label_text = "SCAN FOR SDS"
+        label_width = stringWidth(label_text, FONTS['regular'], FONT_SIZES['qr_label'])
+        label_x = x + (card_width - label_width) / 2
+        c.drawString(label_x, y + 3, label_text)
 
 
 def load_sku_data(sku: str) -> SKUData:
     """Load SKU data from JSON file."""
     from src.config import DATA_DIR
 
-    json_path = DATA_DIR / "test_skus" / f"{sku}.json"
-    if not json_path.exists():
-        raise FileNotFoundError(f"SKU data not found: {json_path}")
+    search_dirs = [
+        DATA_DIR / "skus",
+        DATA_DIR / "test_skus",
+    ]
+    json_path = None
+    for directory in search_dirs:
+        candidate = directory / f"{sku}.json"
+        if candidate.exists():
+            json_path = candidate
+            break
+    if not json_path:
+        searched = ", ".join(str(path) for path in search_dirs)
+        raise FileNotFoundError(f"SKU data not found in: {searched}")
 
     with open(json_path) as f:
         data = json.load(f)

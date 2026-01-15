@@ -33,6 +33,7 @@ class PackingGroup(str, Enum):
 
 class PackageType(str, Enum):
     """Package type options matching JSON data."""
+    UNKNOWN = "unknown"
     QUART_1 = "quart_1"
     GALLON_1 = "gallon_1"
     GALLON_2_5 = "gallon_2.5"

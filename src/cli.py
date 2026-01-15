@@ -1,10 +1,14 @@
 """CLI for label generation."""
 
-import typer
+import json
 from pathlib import Path
+
+import typer
 
 from src.config import OUTPUT_DIR
 from src.label_renderer import generate_label, load_sku_data
+from src.importers.shopify import import_shopify_csv
+from src.importers.shopify_api import import_shopify_api
 
 app = typer.Typer(help="Alliance Chemical Label Generator")
 
@@ -75,6 +79,78 @@ def batch(
             failed += 1
 
     typer.echo(f"\nGenerated {success} labels, {failed} failed")
+
+
+@app.command("import-shopify")
+def import_shopify(
+    csv_path: Path = typer.Argument(..., help="Shopify product export CSV"),
+    output: Path = typer.Option(None, "--output", "-o", help="Output directory for SKU JSON"),
+    overwrite: bool = typer.Option(False, "--overwrite", help="Overwrite existing JSON files"),
+    allow_missing: bool = typer.Option(
+        False,
+        "--allow-missing",
+        help="Write records even if required fields are missing",
+    ),
+    report: Path = typer.Option(None, "--report", help="Write a JSON report of skipped rows"),
+):
+    """Import Shopify products into SKU JSON stubs."""
+    try:
+        created, skipped = import_shopify_csv(
+            csv_path=csv_path,
+            output_dir=output,
+            overwrite=overwrite,
+            allow_missing=allow_missing,
+        )
+        typer.echo(f"✓ Imported {created} SKU records")
+        if skipped:
+            typer.echo(f"⚠ Skipped {len(skipped)} rows")
+        if report:
+            report.parent.mkdir(parents=True, exist_ok=True)
+            report.write_text(
+                json.dumps(skipped, indent=2, ensure_ascii=True) + "\n",
+                encoding="utf-8",
+            )
+            typer.echo(f"Report written to: {report}")
+    except Exception as e:
+        typer.echo(f"✗ Error importing Shopify CSV: {e}", err=True)
+        raise typer.Exit(1)
+
+
+@app.command("import-shopify-api")
+def import_shopify_api_command(
+    store: str = typer.Option(None, "--store", help="Shopify store domain"),
+    api_version: str = typer.Option(None, "--api-version", help="Shopify API version"),
+    output: Path = typer.Option(None, "--output", "-o", help="Output directory for SKU JSON"),
+    overwrite: bool = typer.Option(False, "--overwrite", help="Overwrite existing JSON files"),
+    allow_missing: bool = typer.Option(
+        False,
+        "--allow-missing",
+        help="Write records even if required fields are missing",
+    ),
+    report: Path = typer.Option(None, "--report", help="Write a JSON report of skipped rows"),
+):
+    """Import Shopify products via API into SKU JSON stubs."""
+    try:
+        created, skipped = import_shopify_api(
+            store=store,
+            api_version=api_version,
+            output_dir=output,
+            overwrite=overwrite,
+            allow_missing=allow_missing,
+        )
+        typer.echo(f"✓ Imported {created} SKU records")
+        if skipped:
+            typer.echo(f"⚠ Skipped {len(skipped)} rows")
+        if report:
+            report.parent.mkdir(parents=True, exist_ok=True)
+            report.write_text(
+                json.dumps(skipped, indent=2, ensure_ascii=True) + "\n",
+                encoding="utf-8",
+            )
+            typer.echo(f"Report written to: {report}")
+    except Exception as e:
+        typer.echo(f"✗ Error importing Shopify API: {e}", err=True)
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

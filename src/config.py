@@ -70,11 +70,11 @@ RIGHT_COLUMN_RIGHT = CONTENT_RIGHT
 
 # GHS pictogram grid
 GHS_GRID_TOP = MAIN_TOP
-GHS_PICTOGRAM_SIZE = 44   # Inner pictogram size
-GHS_CARD_SIZE = 52        # Outer card size (with padding)
+GHS_PICTOGRAM_SIZE = 36   # Inner pictogram size
+GHS_CARD_SIZE = 42        # Outer card size (with padding)
 GHS_GRID_COLS = 3
 GHS_GRID_ROWS = 2
-GHS_CARD_GAP = 8
+GHS_CARD_GAP = 6
 GHS_GRID_HEIGHT = (GHS_CARD_SIZE * 2) + GHS_CARD_GAP
 
 # Barcode positioning
@@ -206,6 +206,7 @@ TEMPLATES = {
 }
 
 PACKAGE_TO_TEMPLATE = {
+    "unknown": "medium",
     "quart_1": "small",
     "gallon_1": "medium",
     "gallon_2.5": "medium",
