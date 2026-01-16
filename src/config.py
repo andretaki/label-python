@@ -263,31 +263,39 @@ SCIENTIFIC_FONT_SIZES = {
 # ORGANIC FLOW STYLE (Premium/Futuristic)
 # =============================================================================
 
-# Organic color palette - Warm to Cool diagonal flow
+# Organic color palette - Alliance Brand Colors
 ORGANIC_COLORS = {
-    # Warm zone (top-left)
+    # BRAND COLORS (from Alliance website)
+    "brand_purple": (0.373, 0.349, 0.969),       # #5F59F7 - Primary brand
+    "brand_navy": (0.051, 0.200, 0.384),         # #0D3362 - Secondary/buttons
+    "brand_charcoal": (0.129, 0.137, 0.145),     # #212325 - Footer/dark text
+
+    # HEADER (consistent across ALL labels)
+    "header_purple": (0.373, 0.349, 0.969),      # #5F59F7 - Always this
+
+    # Warm zone (top-left) - legacy for gradients
     "warm_white": (1.0, 0.973, 0.941),           # #FFF8F0
     "warm_peach": (1.0, 0.91, 0.84),             # #FFE8D6
     "warm_cream": (0.992, 0.965, 0.925),         # #FDF6EC
 
-    # Cool zone (bottom-right)
-    "cool_teal": (0, 0.831, 0.667),              # #00D4AA
-    "cool_teal_dark": (0, 0.706, 0.588),         # #00B496
-    "cool_white": (0.941, 0.98, 0.98),           # #F0FAFA
-    "cool_gray": (0.91, 0.957, 0.949),           # #E8F4F2
+    # Cool zone (bottom-right) - now purple-tinted
+    "cool_purple": (0.373, 0.349, 0.969),        # #5F59F7 - Brand purple
+    "cool_purple_light": (0.918, 0.914, 0.973),  # #EAE9F8 - Light purple-white
+    "cool_white": (0.941, 0.933, 0.969),         # #F0EEF7 - Cool purple-white
 
     # Frosted glass
     "frosted_white": (1.0, 1.0, 1.0),            # White (use with opacity)
     "frosted_border": (0.9, 0.9, 0.92),          # Subtle gray border
 
     # Signal words
-    "danger_red": (0.863, 0.149, 0.149),         # #DC2626
-    "warning_amber": (0.961, 0.62, 0.043),       # #F59E0B
+    "danger_red": (0.863, 0.149, 0.110),         # #DC2626
+    "warning_amber": (0.961, 0.620, 0.043),      # #F59E0B
 
-    # Text on gradient
-    "text_dark": (0.1, 0.1, 0.12),               # Near black
-    "text_secondary": (0.3, 0.3, 0.35),          # Dark gray
-    "text_muted": (0.5, 0.5, 0.55),              # Medium gray
+    # Text
+    "text_dark": (0.129, 0.137, 0.145),          # #212325 - Brand charcoal
+    "text_secondary": (0.35, 0.36, 0.38),        # Lighter charcoal
+    "text_muted": (0.55, 0.56, 0.58),            # Muted gray
+    "text_light": (1.0, 1.0, 1.0),               # White
 }
 
 # Gradient color stops for diagonal warm-to-cool
@@ -295,7 +303,7 @@ ORGANIC_GRADIENT_STOPS = [
     (0.0, ORGANIC_COLORS["warm_white"]),
     (0.25, ORGANIC_COLORS["warm_peach"]),
     (0.5, ORGANIC_COLORS["warm_cream"]),
-    (0.75, ORGANIC_COLORS["cool_gray"]),
+    (0.75, ORGANIC_COLORS["cool_purple_light"]),
     (1.0, ORGANIC_COLORS["cool_white"]),
 ]
 
@@ -349,13 +357,13 @@ ORGANIC_BLOB_SETTINGS = {
     },
     # Center wave - spans columns, medium opacity (middle layer)
     "center_wave": {
-        "color": "cool_gray",
+        "color": "cool_purple_light",
         "opacity": 0.12,
         "z_order": 2,
     },
     # Cool blob - bottom-right, medium-high opacity (closer)
     "cool_blob": {
-        "color": "cool_teal",
+        "color": "cool_purple",
         "opacity": 0.08,
         "z_order": 3,  # Closest to content
     },
@@ -371,16 +379,16 @@ ORGANIC_HERO_SHADOW = {
 
 # Net contents highlight treatment
 ORGANIC_NET_CONTENTS_HIGHLIGHT = {
-    "glow_color": "cool_teal",
+    "glow_color": "brand_purple",
     "glow_opacity": 0.15,
     "underline": True,
-    "underline_color": "cool_teal",
+    "underline_color": "brand_purple",
 }
 
 # Frosted panel - gradient shows through
 ORGANIC_FROSTED_PANEL = {
     "opacity": 0.82,              # Lower to let gradient show
-    "border_color": "cool_teal",  # Subtle teal accent
+    "border_color": "brand_purple",  # Subtle purple accent
     "border_opacity": 0.4,
     "border_width": 1,
     "corner_radius": 4,           # Sharp but slightly softened
@@ -402,51 +410,57 @@ ORGANIC_CENTER_COLUMN = {
 ORGANIC_PRODUCT_FAMILIES = {
     "solvents": {
         "name": "Solvents & Alcohols",
-        "warm_primary": (1.0, 0.945, 0.878),      # #FFF1E0 - Warm cream
-        "warm_secondary": (1.0, 0.878, 0.741),    # #FFE0BD - Soft peach
-        "cool_primary": (0.0, 0.831, 0.667),      # #00D4AA - Alliance teal
-        "cool_secondary": (0.878, 0.969, 0.957),  # #E0F7F4 - Cool teal white
-        "accent": (0.0, 0.710, 0.569),            # #00B591 - Deep teal
+        # VISIBLE warm peach/coral -> cool purple-tinted (more contrast)
+        "warm_primary": (1.0, 0.90, 0.82),         # Warmer cream
+        "warm_secondary": (1.0, 0.82, 0.70),       # More saturated peach
+        "cool_primary": (0.373, 0.349, 0.969),     # Brand purple (accent)
+        "cool_secondary": (0.85, 0.84, 0.94),      # More purple showing
+        "accent": (0.373, 0.349, 0.969),           # Brand purple
     },
     "acids": {
         "name": "Acids & Corrosives",
-        "warm_primary": (1.0, 0.933, 0.918),      # #FFEEEA - Warm blush
-        "warm_secondary": (1.0, 0.796, 0.737),    # #FFCBBC - Soft coral
-        "cool_primary": (0.918, 0.341, 0.341),    # #EA5757 - Warning red
-        "cool_secondary": (0.969, 0.906, 0.906),  # #F7E7E7 - Cool pink white
-        "accent": (0.776, 0.231, 0.231),          # #C63B3B - Deep red
+        # VISIBLE warm coral/pink -> cool red-purple (warning feel)
+        "warm_primary": (1.0, 0.90, 0.87),         # Warmer blush
+        "warm_secondary": (1.0, 0.75, 0.68),       # More saturated coral
+        "cool_primary": (0.753, 0.224, 0.322),     # Deep red
+        "cool_secondary": (0.94, 0.86, 0.88),      # More pink showing
+        "accent": (0.753, 0.224, 0.322),           # Warning red
     },
     "bases": {
         "name": "Bases & Alkalines",
-        "warm_primary": (0.969, 0.949, 0.988),    # #F7F2FC - Warm lavender
-        "warm_secondary": (0.918, 0.867, 0.969),  # #EADDF7 - Soft violet
-        "cool_primary": (0.608, 0.518, 0.827),    # #9B84D3 - Purple
-        "cool_secondary": (0.941, 0.933, 0.969),  # #F0EEF7 - Cool violet white
-        "accent": (0.478, 0.376, 0.702),          # #7A60B3 - Deep purple
+        # VISIBLE warm lavender -> cool deep purple (closest to brand)
+        "warm_primary": (0.94, 0.91, 0.98),        # Warmer lavender
+        "warm_secondary": (0.86, 0.82, 0.96),      # More saturated violet
+        "cool_primary": (0.373, 0.349, 0.969),     # Brand purple
+        "cool_secondary": (0.86, 0.84, 0.96),      # More purple showing
+        "accent": (0.290, 0.267, 0.820),           # Deeper purple
     },
     "oils": {
         "name": "Oils & Lubricants",
-        "warm_primary": (0.988, 0.973, 0.929),    # #FCF8ED - Warm cream
-        "warm_secondary": (0.969, 0.925, 0.804),  # #F7ECCD - Soft gold
-        "cool_primary": (0.608, 0.725, 0.490),    # #9BB97D - Sage green
-        "cool_secondary": (0.933, 0.953, 0.918),  # #EEF3EA - Cool sage white
-        "accent": (0.447, 0.584, 0.337),          # #729556 - Deep green
+        # VISIBLE warm gold/amber -> cool sage with more contrast
+        "warm_primary": (0.98, 0.94, 0.85),        # Warmer cream
+        "warm_secondary": (0.96, 0.88, 0.70),      # More saturated gold
+        "cool_primary": (0.478, 0.553, 0.490),     # Sage green
+        "cool_secondary": (0.88, 0.92, 0.88),      # More sage showing
+        "accent": (0.373, 0.447, 0.373),           # Deep sage
     },
     "food_grade": {
         "name": "Food Grade",
-        "warm_primary": (1.0, 0.996, 0.960),      # #FFFEF5 - Clean cream
-        "warm_secondary": (0.957, 0.988, 0.937),  # #F4FCEF - Hint of green
-        "cool_primary": (0.400, 0.808, 0.616),    # #66CE9D - Fresh mint
-        "cool_secondary": (0.925, 0.976, 0.949),  # #ECF9F2 - Cool mint white
-        "accent": (0.259, 0.647, 0.471),          # #42A578 - Deep mint
+        # VISIBLE clean cream -> fresh mint (safety/cleanliness feel)
+        "warm_primary": (0.99, 0.98, 0.93),        # Clean cream
+        "warm_secondary": (0.92, 0.97, 0.90),      # More mint showing
+        "cool_primary": (0.314, 0.690, 0.525),     # Fresh mint
+        "cool_secondary": (0.87, 0.95, 0.90),      # More mint showing
+        "accent": (0.259, 0.569, 0.420),           # Deep mint
     },
     "specialty": {
         "name": "Specialty Chemicals",
-        "warm_primary": (0.996, 0.941, 0.965),    # #FEF0F6 - Warm pink
-        "warm_secondary": (0.988, 0.867, 0.918),  # #FCDDEA - Soft rose
-        "cool_primary": (0.376, 0.627, 0.918),    # #60A0EA - Electric blue
-        "cool_secondary": (0.925, 0.949, 0.984),  # #ECF2FB - Cool blue white
-        "accent": (0.251, 0.502, 0.800),          # #4080CC - Deep blue
+        # VISIBLE brand purple prominently - premium feel
+        "warm_primary": (0.94, 0.92, 0.98),        # Warmer purple-white
+        "warm_secondary": (0.88, 0.84, 0.96),      # More saturated purple
+        "cool_primary": (0.373, 0.349, 0.969),     # Brand purple
+        "cool_secondary": (0.85, 0.83, 0.96),      # More purple showing
+        "accent": (0.290, 0.267, 0.820),           # Deep purple
     },
 }
 

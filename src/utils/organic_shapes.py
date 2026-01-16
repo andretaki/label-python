@@ -235,24 +235,42 @@ def draw_dissolving_header(canvas, x: float, y: float, width: float, height: flo
     canvas.restoreState()
 
 
+def _generate_wobble_sequence(seed: float, count: int) -> list:
+    """
+    Generate a deterministic sequence of wobble values based on seed.
+
+    Uses a simple hash-based approach for reproducible "randomness"
+    so the same blob always looks the same.
+    """
+    wobbles = []
+    for i in range(count):
+        # Create deterministic pseudo-random value from seed and index
+        val = math.sin(seed * 12.9898 + i * 78.233) * 43758.5453
+        wobbles.append((val - int(val)) * 2 - 1)  # Range -1 to 1
+    return wobbles
+
+
 def draw_organic_blob(canvas, center_x: float, center_y: float,
                       width: float, height: float, rotation: float,
                       fill_color: tuple, opacity: float = 0.25,
-                      curve_tension: float = 0.4) -> None:
+                      curve_tension: float = 0.4,
+                      blob_style: str = "watercolor") -> None:
     """
-    Draw a single organic blob shape using smooth bezier curves.
+    Draw a truly organic blob shape using irregular bezier curves.
 
-    The blob is an irregular, organic shape - not a circle or ellipse.
-    Curve tension controls how smooth vs angular the curves are.
+    Creates irregular, flowing shapes like watercolor washes or ink drops -
+    NOT geometric ellipses or polygons. Uses 8-12 anchor points with
+    wobbled radii and varied control points for true organic feel.
 
     Args:
         canvas: ReportLab canvas object
         center_x, center_y: Center position of the blob
         width, height: Approximate dimensions
-        rotation: Rotation angle in degrees
+        rotation: Rotation angle in degrees (also serves as shape seed)
         fill_color: RGB color tuple
         opacity: Blob opacity (0.15-0.30 recommended for visibility)
-        curve_tension: 0.2 = very smooth, 0.7 = more angular
+        curve_tension: Influences curve smoothness (0.2-0.5 for organic feel)
+        blob_style: "watercolor", "ink_drop", "flowing", "pool", or "rising"
     """
     canvas.saveState()
 
@@ -267,51 +285,108 @@ def draw_organic_blob(canvas, center_x: float, center_y: float,
     canvas.translate(center_x, center_y)
     canvas.rotate(rotation)
 
-    # Generate organic blob points
-    # Use 6-8 control points for natural shape
-    num_points = 6
-    points = []
+    # Half dimensions for calculations
+    hw = width / 2
+    hh = height / 2
 
-    for i in range(num_points):
-        angle = (2 * math.pi * i / num_points) - math.pi / 2
+    # Style-specific parameters for anchor count and wobble intensity
+    style_params = {
+        "watercolor": {"anchors": 10, "wobble": 0.35, "asymmetry": 0.25},
+        "ink_drop": {"anchors": 9, "wobble": 0.30, "asymmetry": 0.20},
+        "flowing": {"anchors": 11, "wobble": 0.40, "asymmetry": 0.35},
+        "pool": {"anchors": 8, "wobble": 0.20, "asymmetry": 0.15},
+        "rising": {"anchors": 10, "wobble": 0.32, "asymmetry": 0.28},
+    }
 
-        # Vary radius for organic feel
-        # Add some randomness based on index (deterministic)
-        radius_variance = 0.15 + 0.1 * math.sin(i * 2.5)
-        rx = (width / 2) * (1 + radius_variance * math.cos(i * 1.7))
-        ry = (height / 2) * (1 + radius_variance * math.sin(i * 1.3))
+    params = style_params.get(blob_style, style_params["watercolor"])
+    num_anchors = params["anchors"]
+    wobble_intensity = params["wobble"]
+    asymmetry = params["asymmetry"]
 
-        px = rx * math.cos(angle)
-        py = ry * math.sin(angle)
-        points.append((px, py))
+    # Use rotation as seed for deterministic wobble
+    seed = rotation + (ord(blob_style[0]) if blob_style else 0)
 
-    # Draw smooth closed curve through points
+    # Generate wobble sequences for radius, angle offset, and control points
+    radius_wobbles = _generate_wobble_sequence(seed, num_anchors)
+    angle_wobbles = _generate_wobble_sequence(seed + 100, num_anchors)
+    ctrl_wobbles = _generate_wobble_sequence(seed + 200, num_anchors * 2)
+
+    # Style-specific base shape modifications
+    # These create the general character while wobbles add irregularity
+    style_mods = {
+        "watercolor": lambda a: 1.0 + 0.15 * math.sin(a * 2.3) - 0.1 * math.cos(a * 1.7),
+        "ink_drop": lambda a: 0.9 + 0.2 * math.sin(a - 0.5) + 0.1 * math.cos(a * 2),
+        "flowing": lambda a: 1.0 + 0.25 * math.sin(a * 1.5 + 0.8) - 0.15 * math.cos(a * 0.7),
+        "pool": lambda a: 0.95 + 0.1 * math.sin(a * 1.2) + 0.08 * math.cos(a * 2.5),
+        "rising": lambda a: 1.0 + 0.2 * math.sin(a + 1.2) + 0.15 * math.cos(a * 1.8 - 0.3),
+    }
+    style_mod = style_mods.get(blob_style, style_mods["watercolor"])
+
+    # Generate anchor points around the perimeter with wobble
+    anchors = []
+    for i in range(num_anchors):
+        # Base angle evenly distributed
+        base_angle = (2 * math.pi * i / num_anchors)
+
+        # Add angle wobble (shifts point position along perimeter)
+        angle = base_angle + angle_wobbles[i] * 0.25
+
+        # Base radius (ellipse) with style modification
+        base_r_x = hw * style_mod(angle)
+        base_r_y = hh * style_mod(angle + 0.5)  # Slight offset for asymmetry
+
+        # Apply radius wobble (makes shape irregular)
+        wobble_factor = 1.0 + radius_wobbles[i] * wobble_intensity
+
+        # Additional asymmetry based on quadrant
+        quadrant_factor = 1.0 + asymmetry * math.sin(angle * 1.3 + seed * 0.1)
+
+        # Calculate final point
+        r_x = base_r_x * wobble_factor * quadrant_factor
+        r_y = base_r_y * wobble_factor * quadrant_factor
+
+        x = r_x * math.cos(angle)
+        y = r_y * math.sin(angle)
+
+        anchors.append((x, y, angle))
+
+    # Build path with bezier curves between anchors
     path = canvas.beginPath()
+    path.moveTo(anchors[0][0], anchors[0][1])
 
-    if len(points) >= 3:
-        # Start at first point
-        path.moveTo(points[0][0], points[0][1])
+    for i in range(num_anchors):
+        curr = anchors[i]
+        next_idx = (i + 1) % num_anchors
+        next_pt = anchors[next_idx]
 
-        # Draw bezier curves between points
-        n = len(points)
-        tension = curve_tension
+        # Calculate control points with wobble for organic curves
+        # Distance between points
+        dx = next_pt[0] - curr[0]
+        dy = next_pt[1] - curr[1]
+        dist = math.sqrt(dx * dx + dy * dy)
 
-        for i in range(n):
-            p0 = points[i]
-            p1 = points[(i + 1) % n]
-            p2 = points[(i + 2) % n]
+        # Tangent directions (perpendicular-ish to radius)
+        curr_tangent_x = -math.sin(curr[2])
+        curr_tangent_y = math.cos(curr[2])
+        next_tangent_x = -math.sin(next_pt[2])
+        next_tangent_y = math.cos(next_pt[2])
 
-            # Calculate control points based on tension
-            # Lower tension = smoother curves
-            ctrl1_x = p0[0] + (p1[0] - points[(i - 1) % n][0]) * tension
-            ctrl1_y = p0[1] + (p1[1] - points[(i - 1) % n][1]) * tension
-            ctrl2_x = p1[0] - (p2[0] - p0[0]) * tension
-            ctrl2_y = p1[1] - (p2[1] - p0[1]) * tension
+        # Control point distance with wobble
+        ctrl_dist = dist * (0.3 + curve_tension * 0.2)
+        ctrl1_wobble = 1.0 + ctrl_wobbles[i * 2] * 0.4
+        ctrl2_wobble = 1.0 + ctrl_wobbles[i * 2 + 1] * 0.4
 
-            path.curveTo(ctrl1_x, ctrl1_y, ctrl2_x, ctrl2_y, p1[0], p1[1])
+        # First control point (leaving current anchor)
+        ctrl1_x = curr[0] + curr_tangent_x * ctrl_dist * ctrl1_wobble
+        ctrl1_y = curr[1] + curr_tangent_y * ctrl_dist * ctrl1_wobble
 
-        path.close()
+        # Second control point (approaching next anchor)
+        ctrl2_x = next_pt[0] - next_tangent_x * ctrl_dist * ctrl2_wobble
+        ctrl2_y = next_pt[1] - next_tangent_y * ctrl_dist * ctrl2_wobble
 
+        path.curveTo(ctrl1_x, ctrl1_y, ctrl2_x, ctrl2_y, next_pt[0], next_pt[1])
+
+    path.close()
     canvas.drawPath(path, fill=1, stroke=0)
     canvas.restoreState()
 
@@ -321,57 +396,79 @@ def get_blob_positions(arrangement: str, label_width: float, label_height: float
     """
     Get blob positions and sizes based on arrangement type.
 
-    Returns list of (center_x, center_y, width, height, rotation) tuples.
+    Returns list of (center_x, center_y, width, height, rotation, blob_style) tuples.
+
+    IMPORTANT: Blobs must stay OUT of the hero title zone (top ~30% of page).
+    Primary blob should be in mid-body (Y = 30-45% of height).
+    Secondary blobs can be at edges/corners but not behind title.
     """
+    w, h = label_width, label_height
+
     if arrangement == "diagonal_sweep":
-        # Flowing diagonal sweep - smooth, liquid feel
+        # Flowing diagonal sweep - SOLVENTS
+        # Blobs in mid-to-lower body, away from title
         return [
-            (label_width * 0.25, label_height * 0.72, 200 * scale, 140 * scale, -15),
-            (label_width * 0.55, label_height * 0.48, 160 * scale, 110 * scale, -20),
-            (label_width * 0.82, label_height * 0.28, 120 * scale, 90 * scale, -25),
+            # PRIMARY: Mid-body, spans col1-col2 boundary
+            (w * 0.38, h * 0.35, 160 * scale, 100 * scale, -12, "watercolor"),
+            # SECONDARY: Lower left corner
+            (w * 0.15, h * 0.22, 120 * scale, 80 * scale, -8, "flowing"),
+            # TERTIARY: Right edge, mid-low
+            (w * 0.85, h * 0.30, 90 * scale, 60 * scale, -18, "flowing"),
         ]
 
     elif arrangement == "angular_clash":
-        # Angular, aggressive - sharper, more energetic
+        # Angular, aggressive - ACIDS
         return [
-            (label_width * 0.30, label_height * 0.68, 180 * scale, 110 * scale, -35),
-            (label_width * 0.72, label_height * 0.32, 160 * scale, 100 * scale, 20),
+            # PRIMARY: Mid-body
+            (w * 0.40, h * 0.32, 140 * scale, 90 * scale, -25, "ink_drop"),
+            # SECONDARY: Lower right
+            (w * 0.75, h * 0.25, 110 * scale, 70 * scale, 20, "ink_drop"),
         ]
 
     elif arrangement == "rising_flow":
-        # Rising curves - upward energy
+        # Rising curves - upward energy - BASES
         return [
-            (label_width * 0.22, label_height * 0.38, 170 * scale, 120 * scale, 25),
-            (label_width * 0.52, label_height * 0.55, 150 * scale, 105 * scale, 30),
-            (label_width * 0.78, label_height * 0.72, 120 * scale, 85 * scale, 35),
+            # PRIMARY: Mid-body
+            (w * 0.38, h * 0.35, 150 * scale, 100 * scale, 15, "rising"),
+            # SECONDARY: Lower left
+            (w * 0.18, h * 0.25, 100 * scale, 70 * scale, 20, "rising"),
+            # TERTIARY: Right edge low
+            (w * 0.82, h * 0.28, 80 * scale, 55 * scale, 10, "watercolor"),
         ]
 
     elif arrangement == "slow_pool":
-        # Smooth, slow, rounded - viscous feel
+        # Smooth, slow, rounded - viscous feel - OILS
         return [
-            (label_width * 0.35, label_height * 0.58, 220 * scale, 180 * scale, 5),
-            (label_width * 0.72, label_height * 0.38, 170 * scale, 140 * scale, -5),
+            # PRIMARY: Mid-body, spans columns
+            (w * 0.40, h * 0.32, 170 * scale, 110 * scale, 5, "pool"),
+            # SECONDARY: Lower right
+            (w * 0.78, h * 0.22, 120 * scale, 90 * scale, -5, "pool"),
         ]
 
     elif arrangement == "contained_circles":
-        # Clean, contained - safe/pure feel
+        # Clean, contained - safe/pure feel - FOOD GRADE
         return [
-            (label_width * 0.32, label_height * 0.52, 150 * scale, 140 * scale, 0),
-            (label_width * 0.72, label_height * 0.42, 130 * scale, 120 * scale, 0),
+            # PRIMARY: Mid-body
+            (w * 0.42, h * 0.35, 130 * scale, 100 * scale, 0, "pool"),
+            # SECONDARY: Lower right
+            (w * 0.75, h * 0.25, 100 * scale, 80 * scale, 5, "pool"),
         ]
 
     elif arrangement == "dynamic_intersect":
-        # Dynamic, intersecting - premium feel
+        # Dynamic, intersecting - premium feel - SPECIALTY
         return [
-            (label_width * 0.28, label_height * 0.62, 190 * scale, 125 * scale, -12),
-            (label_width * 0.52, label_height * 0.52, 170 * scale, 115 * scale, 8),
-            (label_width * 0.76, label_height * 0.38, 140 * scale, 95 * scale, -8),
+            # PRIMARY: Mid-body
+            (w * 0.38, h * 0.35, 150 * scale, 95 * scale, -8, "watercolor"),
+            # SECONDARY: Lower center-right
+            (w * 0.58, h * 0.28, 120 * scale, 80 * scale, 12, "flowing"),
+            # TERTIARY: Right edge low
+            (w * 0.82, h * 0.22, 90 * scale, 65 * scale, -5, "ink_drop"),
         ]
 
     # Default fallback
     return [
-        (label_width * 0.3, label_height * 0.6, 180 * scale, 120 * scale, -10),
-        (label_width * 0.7, label_height * 0.4, 150 * scale, 100 * scale, 10),
+        (w * 0.38, h * 0.55, 190 * scale, 130 * scale, -8, "watercolor"),
+        (w * 0.70, h * 0.40, 160 * scale, 110 * scale, 8, "watercolor"),
     ]
 
 

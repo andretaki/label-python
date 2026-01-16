@@ -1,0 +1,10 @@
+# Alliance Chemical Label Generator - Dependencies
+# Install: pip install -r requirements.txt
+
+reportlab>=4.0
+python-barcode>=0.15
+qrcode>=7.4
+svglib>=1.5
+pydantic>=2.0
+typer>=0.9
+pillow>=10.0
