@@ -353,15 +353,14 @@ class OrganicFlowLabelRenderer:
         # Compute hero safe zone to avoid
         safe_zone = self._compute_hero_safe_zone()
 
-        # Blob colors: alternate between warm and cool for depth
+        # Blob colors: very subtle, supporting cast only
         blob_colors = [
-            colors["warm_secondary"],  # Warm blob (furthest back)
-            colors["cool_primary"],     # Accent blob (middle)
-            colors["cool_secondary"],   # Cool blob (closer)
+            colors["warm_primary"],  # Lighter color
+            colors["cool_secondary"],
         ]
 
-        # Opacities: higher for visibility - organic blobs should be felt
-        opacities = [0.28, 0.20, 0.22]
+        # Opacities: barely visible - 6-8% max
+        opacities = [0.06, 0.05]
 
         for i, pos in enumerate(positions):
             # Unpack position - now includes blob_style
@@ -505,7 +504,7 @@ class OrganicFlowLabelRenderer:
             content_lines -= 1
 
         line_height = 16
-        padding = 10
+        padding = 12  # Increased padding for better text clearance
         card_content_height = content_lines * line_height + padding * 2
 
         nfpa_height = 0
@@ -525,44 +524,54 @@ class OrganicFlowLabelRenderer:
             border_color=colors["accent"],
             border_opacity=0.35,
             shadow=True,
-            shadow_opacity=0.12,
-            shadow_offset=3,
-            shadow_blur=6
+            shadow_opacity=0.05,
+            shadow_offset=1,
+            shadow_blur=2
         )
 
         # Draw data inside card
         text_x = x + padding
         text_y = y_top - padding
+        max_text_width = col_w - padding * 2 - 4  # Available width for text
 
-        # SKU (large, mono bold)
+        # SKU (mono bold, scaled to fit)
         c.setFont(FONTS["regular"], 6)
         c.setFillColor(Color(*ORGANIC_COLORS["text_muted"]))
         c.drawString(text_x, text_y - 6, "SKU")
         text_y -= 8
 
-        c.setFont(FONTS["mono_bold"], sizes["product_code"])
-        c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
-        c.drawString(text_x, text_y - sizes["product_code"], self.data.sku)
-        text_y -= sizes["product_code"] + 8
+        # Scale SKU font to fit within card
+        sku_size = sizes["product_code"]
+        sku_width = stringWidth(self.data.sku, FONTS["mono_bold"], sku_size)
+        while sku_width > max_text_width and sku_size > 7:
+            sku_size -= 0.5
+            sku_width = stringWidth(self.data.sku, FONTS["mono_bold"], sku_size)
 
-        # LOT
+        # SKU: BOLD, prominent - read first in 3-second glance
+        c.setFont(FONTS["mono_bold"], sku_size)
+        c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
+        c.drawString(text_x, text_y - sku_size, self.data.sku)
+        text_y -= sku_size + 8
+
+        # LOT: Medium weight - clearly secondary
         if self.data.lot_number:
-            c.setFont(FONTS["regular"], 6)
+            c.setFont(FONTS["regular"], 5.5)
             c.setFillColor(Color(*ORGANIC_COLORS["text_muted"]))
-            c.drawString(text_x, text_y - 6, "LOT")
-            text_y -= 8
+            c.drawString(text_x, text_y - 5.5, "LOT")
+            text_y -= 7
 
             c.setFont(FONTS["mono"], sizes["lot"])
-            c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
+            c.setFillColor(Color(*ORGANIC_COLORS["text_secondary"]))
             c.drawString(text_x, text_y - sizes["lot"], self.data.lot_number)
-            text_y -= sizes["lot"] + 6
+            text_y -= sizes["lot"] + 5
 
-        # CAS
+        # CAS: Light weight, smallest - tertiary info
         if self.data.cas_number:
-            c.setFont(FONTS["mono"], sizes["cas"])
-            c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
-            c.drawString(text_x, text_y - sizes["cas"], f"CAS: {self.data.cas_number}")
-            text_y -= sizes["cas"] + 6
+            cas_size = sizes["cas"] - 1  # -1pt from current
+            c.setFont(FONTS["regular"], cas_size)
+            c.setFillColor(Color(*ORGANIC_COLORS["text_muted"]))
+            c.drawString(text_x, text_y - cas_size, f"CAS: {self.data.cas_number}")
+            text_y -= cas_size + 5
 
         # UPC removed - barcode with digits is in header
 
@@ -696,48 +705,97 @@ class OrganicFlowLabelRenderer:
             pg = self.data.packing_group.value if self.data.packing_group else ""
             c.drawString(x, y - 7, f"Class {self.data.hazard_class}, PG {pg}")
 
-        # For non-hazmat, add additional product info in the expanded space
-        if not self.has_hazmat and y > self.main_bottom + 50:
-            y -= 20
-            # Add a "Safe Product" indicator
-            c.setFont(FONTS["bold"], 9)
-            c.setFillColor(Color(*colors["accent"]))
-            c.drawString(x, y, "NON-HAZARDOUS")
-            y -= 12
-            c.setFont(FONTS["regular"], 7)
-            c.setFillColor(Color(*ORGANIC_COLORS["text_muted"]))
-            c.drawString(x, y, "No GHS classification required")
+        # Non-hazmat badge is now drawn in column 3, no inline text needed here
 
     def _draw_column_3(self):
         """
-        Draw right column: Frosted GHS island (precision element).
+        Draw right column: Frosted GHS island (hazmat) or Non-hazardous badge (non-hazmat).
 
-        Sharp-edged compliance zone with soft shadow for depth.
+        For hazmat: Sharp-edged compliance zone with GHS pictograms and statements.
+        For non-hazmat: Smaller badge panel to maintain 3-column visual balance.
         """
         c = self.c
         colors = self.family_colors
-        x = self.col3_left
-        y_top = self.main_top
-        w = self.col3_width
         sizes = ORGANIC_FONT_SIZES
 
         if not self.data.hazcom_applicable:
+            # Non-hazmat: Draw proper NON-HAZARDOUS panel
+            # Sized to balance with hazmat panel: 1.5" W × 1.2" H = 108pt × 86pt
+            badge_width = 108
+            badge_height = 86
+            badge_x = LABEL_WIDTH - self.margin - badge_width - 4
+            badge_y = self.main_top - badge_height - 8
+
+            # Use teal/green for safety (NOT red/orange/yellow which indicate hazard)
+            safe_color = (0.18, 0.55, 0.45)  # Teal green
+
+            # Frosted badge panel
+            draw_frosted_panel(
+                c,
+                badge_x, badge_y,
+                badge_width, badge_height,
+                opacity=0.94,
+                corner_radius=6,
+                border_color=safe_color,
+                border_opacity=0.5,
+                shadow=True,
+                shadow_opacity=0.05,
+                shadow_offset=1,
+                shadow_blur=2
+            )
+
+            # Large checkmark circle (prominent, identifiable at 2 feet)
+            circle_x = badge_x + badge_width / 2
+            circle_y = badge_y + badge_height - 28
+            circle_r = 18  # Larger circle
+            c.setFillColor(Color(*safe_color, 0.12))
+            c.circle(circle_x, circle_y, circle_r, fill=1, stroke=0)
+            c.setStrokeColor(Color(*safe_color))
+            c.setLineWidth(2)
+            c.circle(circle_x, circle_y, circle_r, fill=0, stroke=1)
+
+            # Large checkmark inside circle
+            c.setStrokeColor(Color(*safe_color))
+            c.setLineWidth(3)
+            path = c.beginPath()
+            path.moveTo(circle_x - 8, circle_y)
+            path.lineTo(circle_x - 2, circle_y - 6)
+            path.lineTo(circle_x + 10, circle_y + 8)
+            c.drawPath(path, fill=0, stroke=1)
+
+            # "NON-HAZARDOUS" in bold 14pt (identifiable at 2 feet in 2 seconds)
+            c.setFont(FONTS["bold"], 14)
+            c.setFillColor(Color(*safe_color))
+            c.drawCentredString(badge_x + badge_width / 2, badge_y + 28, "NON-HAZARDOUS")
+
+            # "No GHS classification required" in 8pt
+            c.setFont(FONTS["regular"], 8)
+            c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
+            c.drawCentredString(badge_x + badge_width / 2, badge_y + 14, "No GHS classification")
+            c.drawCentredString(badge_x + badge_width / 2, badge_y + 5, "required")
+
             return
 
+        # Hazmat: Full GHS compliance panel
+        x = self.col3_left
+        y_top = self.main_top
+        w = self.col3_width
+
         # Draw frosted glass island for entire column
+        # Higher opacity for better text contrast on hazmat panel
         island_height = y_top - self.main_bottom - 8
         draw_frosted_panel(
             c,
             x, self.main_bottom + 4,
             w, island_height,
-            opacity=0.90,  # Frosted: 0.88-0.92 so gradient shows slightly
+            opacity=0.94,  # More opaque for hazmat readability
             corner_radius=4,
             border_color=colors["accent"],
             border_opacity=0.35,
             shadow=True,
-            shadow_opacity=0.12,
-            shadow_offset=3,
-            shadow_blur=6
+            shadow_opacity=0.05,
+            shadow_offset=1,
+            shadow_blur=2
         )
 
         # Content positioning inside island
@@ -820,28 +878,69 @@ class OrganicFlowLabelRenderer:
             c.line(content_x, content_y, content_x + content_width * 0.5, content_y)
             content_y -= 5
 
-        # P-Statements (strip codes)
+        # P-Statements grouped by category for better scannability
         if self.data.precaution_statements:
             p_size = sizes["p_statement"]
-            c.setFont(FONTS["regular"], p_size)
-            c.setFillColor(Color(*ORGANIC_COLORS["text_secondary"]))
-
-            clean_stmts = []
-            for stmt in self.data.precaution_statements:
-                clean = re.sub(r"^[PH]\d+(\+[PH]\d+)*:\s*", "", stmt)
-                clean_stmts.append(clean)
-
-            combined = " ".join(clean_stmts) + " See SDS for complete precautionary information."
-            lines = self._wrap_text(combined, FONTS["regular"], p_size, content_width)
-
             supplier_space = 25
             min_y = self.main_bottom + padding + supplier_space
 
-            for line in lines:
-                if content_y - p_size < min_y:
-                    break
-                c.drawString(content_x, content_y - p_size, line)
-                content_y -= p_size * 1.1
+            # Group statements by P-code category
+            prevention = []  # P2xx
+            response = []    # P3xx
+            storage = []     # P4xx
+            disposal = []    # P5xx
+
+            for stmt in self.data.precaution_statements:
+                clean = re.sub(r"^[PH]\d+(\+[PH]\d+)*:\s*", "", stmt)
+                # Extract P-code to determine category
+                code_match = re.match(r"^P(\d)", stmt)
+                if code_match:
+                    first_digit = code_match.group(1)
+                    if first_digit == "2":
+                        prevention.append(clean)
+                    elif first_digit == "3":
+                        response.append(clean)
+                    elif first_digit == "4":
+                        storage.append(clean)
+                    elif first_digit == "5":
+                        disposal.append(clean)
+                    else:
+                        prevention.append(clean)  # Default
+                else:
+                    prevention.append(clean)
+
+            # Draw grouped sections - darker text for readability
+            c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
+
+            def draw_group(label, items):
+                nonlocal content_y
+                if not items or content_y - p_size < min_y:
+                    return
+                # Section label in bold
+                c.setFont(FONTS["bold"], p_size)
+                c.drawString(content_x, content_y - p_size, label)
+                content_y -= p_size * 1.2
+                # Items in regular
+                c.setFont(FONTS["regular"], p_size)
+                combined = " ".join(items)
+                lines = self._wrap_text(combined, FONTS["regular"], p_size, content_width)
+                for line in lines:
+                    if content_y - p_size < min_y:
+                        break
+                    c.drawString(content_x, content_y - p_size, line)
+                    content_y -= p_size * 1.1
+                content_y -= 2  # Small gap between sections
+
+            draw_group("Prevention:", prevention)
+            draw_group("Response:", response)
+            draw_group("Storage:", storage)
+            draw_group("Disposal:", disposal)
+
+            # SDS reference
+            if content_y - p_size >= min_y:
+                c.setFont(FONTS["regular"], p_size - 0.5)
+                c.setFillColor(Color(*ORGANIC_COLORS["text_muted"]))
+                c.drawString(content_x, content_y - p_size, "See SDS for complete info.")
 
         # Supplier info at bottom (address is in footer, avoid duplication)
         content_y = self.main_bottom + padding + 12

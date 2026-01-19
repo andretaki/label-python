@@ -344,7 +344,7 @@ ORGANIC_FONT_SIZES = {
 }
 
 # GHS settings for organic style
-ORGANIC_GHS_SIZE = 32
+ORGANIC_GHS_SIZE = 37  # +15% for visibility at 3 feet (was 32)
 ORGANIC_GHS_GAP = 4
 
 # Layered depth settings - blobs at different opacities for dimensional feel

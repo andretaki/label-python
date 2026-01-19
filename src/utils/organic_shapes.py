@@ -166,10 +166,10 @@ def draw_dissolving_header(canvas, x: float, y: float, width: float, height: flo
                            fill_color: tuple, wave_depth: float = 20,
                            wave_count: int = 4) -> None:
     """
-    Draw a header with dissolving/wave bottom edge.
+    Draw a header with dissolving/eroding bottom edge.
 
-    Sharp at top, organic curved edge at bottom that melts into content.
-    Uses proper bezier curves for smooth wave undulations.
+    Sharp at top, organic irregular edge at bottom that "dissolves" into content.
+    Uses bezier curves with micro-irregularities for organic eroded feel.
 
     Args:
         canvas: ReportLab canvas object
@@ -183,44 +183,45 @@ def draw_dissolving_header(canvas, x: float, y: float, width: float, height: flo
     """
     canvas.saveState()
 
-    if len(fill_color) >= 4:
-        canvas.setFillColor(Color(fill_color[0], fill_color[1], fill_color[2], fill_color[3]))
-    else:
-        canvas.setFillColor(Color(*fill_color))
+    base_opacity = fill_color[3] if len(fill_color) >= 4 else 1.0
+    r, g, b = fill_color[0], fill_color[1], fill_color[2]
+
+    # Main header shape
+    canvas.setFillColor(Color(r, g, b, base_opacity))
 
     path = canvas.beginPath()
-
-    # Start at bottom-left
     path.moveTo(x, y)
 
-    # Draw wavy bottom edge using bezier curves
+    # Draw wavy bottom edge with micro-irregularities
     wave_width = width / wave_count
+    segments_per_wave = 3  # More segments = more detail
 
     for i in range(wave_count):
         wave_start_x = x + i * wave_width
-        wave_end_x = wave_start_x + wave_width
 
         # Vary wave depth for organic feel
-        # Diagonal flow: waves get slightly deeper toward the right
-        depth_factor = 0.7 + 0.6 * (i / wave_count)
+        depth_factor = 0.7 + 0.5 * (i / wave_count)
         current_depth = wave_depth * depth_factor
+        baseline_offset = -6 * (i / wave_count)
 
-        # Also offset the wave baseline diagonally (higher on left, lower on right)
-        baseline_offset = -8 * (i / wave_count)
+        # Add micro-irregularities within each wave
+        for j in range(segments_per_wave):
+            seg_start = wave_start_x + (wave_width / segments_per_wave) * j
+            seg_end = seg_start + (wave_width / segments_per_wave)
 
-        # Control points for smooth bezier curve
-        # Each wave has a peak (up) and trough (down)
-        ctrl1_x = wave_start_x + wave_width * 0.25
-        ctrl1_y = y + baseline_offset + current_depth * 0.8  # Rise
+            # Wobble factor based on position (deterministic)
+            wobble = math.sin(i * 7.3 + j * 4.7) * 3
 
-        peak_x = wave_start_x + wave_width * 0.5
-        peak_y = y + baseline_offset - current_depth * 0.3  # Dip down
+            # Micro-variation in control points
+            ctrl1_x = seg_start + (seg_end - seg_start) * 0.3
+            ctrl1_y = y + baseline_offset + current_depth * 0.4 * (1 + j * 0.2) + wobble
 
-        ctrl2_x = wave_start_x + wave_width * 0.75
-        ctrl2_y = y + baseline_offset + current_depth * 0.5  # Rise back
+            ctrl2_x = seg_start + (seg_end - seg_start) * 0.7
+            ctrl2_y = y + baseline_offset - current_depth * 0.2 * (1 - j * 0.1) - wobble * 0.5
 
-        # Bezier curve for this wave segment
-        path.curveTo(ctrl1_x, ctrl1_y, peak_x, peak_y, wave_end_x, y + baseline_offset - 5)
+            end_y = y + baseline_offset + wobble * 0.3 - 2
+
+            path.curveTo(ctrl1_x, ctrl1_y, ctrl2_x, ctrl2_y, seg_end, end_y)
 
     # Up the right edge
     path.lineTo(x + width, y + height)
@@ -228,10 +229,22 @@ def draw_dissolving_header(canvas, x: float, y: float, width: float, height: flo
     # Across the top (sharp edge)
     path.lineTo(x, y + height)
 
-    # Close
     path.close()
-
     canvas.drawPath(path, fill=1, stroke=0)
+
+    # Add subtle fade particles below wave edge for "dissolve" effect
+    particle_count = 12
+    for i in range(particle_count):
+        px = x + (width / particle_count) * i + 15
+        # Position particles at varying heights below wave
+        py = y - 5 - (i % 3) * 4
+        particle_size = 2 + (i % 2)
+        particle_opacity = base_opacity * (0.3 - (i % 4) * 0.05)
+
+        if particle_opacity > 0:
+            canvas.setFillColor(Color(r, g, b, particle_opacity))
+            canvas.circle(px, py, particle_size, fill=1, stroke=0)
+
     canvas.restoreState()
 
 
@@ -398,77 +411,47 @@ def get_blob_positions(arrangement: str, label_width: float, label_height: float
 
     Returns list of (center_x, center_y, width, height, rotation, blob_style) tuples.
 
-    IMPORTANT: Blobs must stay OUT of the hero title zone (top ~30% of page).
-    Primary blob should be in mid-body (Y = 30-45% of height).
-    Secondary blobs can be at edges/corners but not behind title.
+    CRITICAL: Blobs are FAR-RIGHT DECORATIVE BAND ONLY.
+    They must NEVER cross the content zones (columns 1-2).
+    Position them at x > 85% of width, in the "decor gutter".
     """
     w, h = label_width, label_height
 
+    # All arrangements: single subtle blob in far-right decorative band
+    # This ensures blobs never compete with content
     if arrangement == "diagonal_sweep":
-        # Flowing diagonal sweep - SOLVENTS
-        # Blobs in mid-to-lower body, away from title
         return [
-            # PRIMARY: Mid-body, spans col1-col2 boundary
-            (w * 0.38, h * 0.35, 160 * scale, 100 * scale, -12, "watercolor"),
-            # SECONDARY: Lower left corner
-            (w * 0.15, h * 0.22, 120 * scale, 80 * scale, -8, "flowing"),
-            # TERTIARY: Right edge, mid-low
-            (w * 0.85, h * 0.30, 90 * scale, 60 * scale, -18, "flowing"),
+            (w * 0.92, h * 0.35, 60 * scale, 45 * scale, -12, "watercolor"),
         ]
 
     elif arrangement == "angular_clash":
-        # Angular, aggressive - ACIDS
         return [
-            # PRIMARY: Mid-body
-            (w * 0.40, h * 0.32, 140 * scale, 90 * scale, -25, "ink_drop"),
-            # SECONDARY: Lower right
-            (w * 0.75, h * 0.25, 110 * scale, 70 * scale, 20, "ink_drop"),
+            (w * 0.90, h * 0.30, 55 * scale, 40 * scale, -20, "ink_drop"),
         ]
 
     elif arrangement == "rising_flow":
-        # Rising curves - upward energy - BASES
         return [
-            # PRIMARY: Mid-body
-            (w * 0.38, h * 0.35, 150 * scale, 100 * scale, 15, "rising"),
-            # SECONDARY: Lower left
-            (w * 0.18, h * 0.25, 100 * scale, 70 * scale, 20, "rising"),
-            # TERTIARY: Right edge low
-            (w * 0.82, h * 0.28, 80 * scale, 55 * scale, 10, "watercolor"),
+            (w * 0.92, h * 0.32, 55 * scale, 40 * scale, 15, "rising"),
         ]
 
     elif arrangement == "slow_pool":
-        # Smooth, slow, rounded - viscous feel - OILS
         return [
-            # PRIMARY: Mid-body, spans columns
-            (w * 0.40, h * 0.32, 170 * scale, 110 * scale, 5, "pool"),
-            # SECONDARY: Lower right
-            (w * 0.78, h * 0.22, 120 * scale, 90 * scale, -5, "pool"),
+            (w * 0.91, h * 0.28, 60 * scale, 50 * scale, 5, "pool"),
         ]
 
     elif arrangement == "contained_circles":
-        # Clean, contained - safe/pure feel - FOOD GRADE
         return [
-            # PRIMARY: Mid-body
-            (w * 0.42, h * 0.35, 130 * scale, 100 * scale, 0, "pool"),
-            # SECONDARY: Lower right
-            (w * 0.75, h * 0.25, 100 * scale, 80 * scale, 5, "pool"),
+            (w * 0.90, h * 0.30, 50 * scale, 45 * scale, 0, "pool"),
         ]
 
     elif arrangement == "dynamic_intersect":
-        # Dynamic, intersecting - premium feel - SPECIALTY
         return [
-            # PRIMARY: Mid-body
-            (w * 0.38, h * 0.35, 150 * scale, 95 * scale, -8, "watercolor"),
-            # SECONDARY: Lower center-right
-            (w * 0.58, h * 0.28, 120 * scale, 80 * scale, 12, "flowing"),
-            # TERTIARY: Right edge low
-            (w * 0.82, h * 0.22, 90 * scale, 65 * scale, -5, "ink_drop"),
+            (w * 0.92, h * 0.32, 55 * scale, 40 * scale, -8, "watercolor"),
         ]
 
     # Default fallback
     return [
-        (w * 0.38, h * 0.55, 190 * scale, 130 * scale, -8, "watercolor"),
-        (w * 0.70, h * 0.40, 160 * scale, 110 * scale, 8, "watercolor"),
+        (w * 0.92, h * 0.30, 55 * scale, 40 * scale, -8, "watercolor"),
     ]
 
 
