@@ -19,7 +19,7 @@ def generate(
     lot: str = typer.Option("TEST-001", "--lot", "-l", help="Lot number"),
     output: Path = typer.Option(None, "--output", "-o", help="Output directory"),
     style: str = typer.Option(
-        "standard", "--style", "-s", help="Label style: 'standard' or 'scientific'"
+        "organic", "--style", "-s", help="Label style: 'standard', 'scientific', or 'organic'"
     ),
 ):
     """Generate a label PDF for the given SKU."""
@@ -30,6 +30,10 @@ def generate(
             from src.label_renderer_scientific import generate_scientific_label
 
             output_path = generate_scientific_label(sku, lot, output_dir)
+        elif style == "organic":
+            from src.label_renderer_organic import generate_organic_label
+
+            output_path = generate_organic_label(sku, lot, output_dir)
         else:
             output_path = generate_label(sku, lot, output_dir)
 

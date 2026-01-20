@@ -162,90 +162,59 @@ def draw_diagonal_gradient_v2(canvas, x: float, y: float, width: float, height: 
     canvas.restoreState()
 
 
+def draw_diagonal_header(canvas, x: float, y: float, width: float, height: float,
+                         fill_color: tuple, angle_degrees: float = 4) -> None:
+    """
+    Draw header with clean diagonal bottom edge.
+
+    The bottom edge slopes down from left to right at the specified angle.
+    This creates an architectural/industrial feel and echoes the diagonal
+    cut on the left data card.
+
+    Args:
+        canvas: ReportLab canvas object
+        x: Left edge (usually 0)
+        y: Bottom of header at LEFT side
+        width: Full width (usually LABEL_WIDTH)
+        height: Header height at the LEFT side
+        fill_color: RGB(A) tuple
+        angle_degrees: Angle of bottom edge (3-5° recommended)
+    """
+    canvas.saveState()
+
+    # Calculate the drop on the right side based on angle
+    angle_rad = math.radians(angle_degrees)
+    right_drop = width * math.tan(angle_rad)
+
+    # Set fill color
+    if len(fill_color) >= 4:
+        canvas.setFillColor(Color(fill_color[0], fill_color[1], fill_color[2], fill_color[3]))
+    else:
+        canvas.setFillColor(Color(*fill_color[:3]))
+
+    # Build path: rectangle with angled bottom
+    path = canvas.beginPath()
+    path.moveTo(x, y)  # Bottom-left
+    path.lineTo(x, y + height)  # Top-left (sharp corner)
+    path.lineTo(x + width, y + height)  # Top-right (sharp corner)
+    path.lineTo(x + width, y - right_drop)  # Bottom-right (lower due to angle)
+    path.close()
+
+    canvas.drawPath(path, fill=1, stroke=0)
+    canvas.restoreState()
+
+
 def draw_dissolving_header(canvas, x: float, y: float, width: float, height: float,
                            fill_color: tuple, wave_depth: float = 20,
                            wave_count: int = 4) -> None:
     """
+    DEPRECATED: Use draw_diagonal_header() instead.
+
     Draw a header with dissolving/eroding bottom edge.
-
-    Sharp at top, organic irregular edge at bottom that "dissolves" into content.
-    Uses bezier curves with micro-irregularities for organic eroded feel.
-
-    Args:
-        canvas: ReportLab canvas object
-        x: X position (left edge)
-        y: Y position (bottom of wave troughs)
-        width: Width in points
-        height: Height in points
-        fill_color: RGB(A) color tuple for the header
-        wave_depth: How deep the waves extend (15-25pt recommended)
-        wave_count: Number of wave undulations (3-5 recommended)
+    Kept for backwards compatibility.
     """
-    canvas.saveState()
-
-    base_opacity = fill_color[3] if len(fill_color) >= 4 else 1.0
-    r, g, b = fill_color[0], fill_color[1], fill_color[2]
-
-    # Main header shape
-    canvas.setFillColor(Color(r, g, b, base_opacity))
-
-    path = canvas.beginPath()
-    path.moveTo(x, y)
-
-    # Draw wavy bottom edge with micro-irregularities
-    wave_width = width / wave_count
-    segments_per_wave = 3  # More segments = more detail
-
-    for i in range(wave_count):
-        wave_start_x = x + i * wave_width
-
-        # Vary wave depth for organic feel
-        depth_factor = 0.7 + 0.5 * (i / wave_count)
-        current_depth = wave_depth * depth_factor
-        baseline_offset = -6 * (i / wave_count)
-
-        # Add micro-irregularities within each wave
-        for j in range(segments_per_wave):
-            seg_start = wave_start_x + (wave_width / segments_per_wave) * j
-            seg_end = seg_start + (wave_width / segments_per_wave)
-
-            # Wobble factor based on position (deterministic)
-            wobble = math.sin(i * 7.3 + j * 4.7) * 3
-
-            # Micro-variation in control points
-            ctrl1_x = seg_start + (seg_end - seg_start) * 0.3
-            ctrl1_y = y + baseline_offset + current_depth * 0.4 * (1 + j * 0.2) + wobble
-
-            ctrl2_x = seg_start + (seg_end - seg_start) * 0.7
-            ctrl2_y = y + baseline_offset - current_depth * 0.2 * (1 - j * 0.1) - wobble * 0.5
-
-            end_y = y + baseline_offset + wobble * 0.3 - 2
-
-            path.curveTo(ctrl1_x, ctrl1_y, ctrl2_x, ctrl2_y, seg_end, end_y)
-
-    # Up the right edge
-    path.lineTo(x + width, y + height)
-
-    # Across the top (sharp edge)
-    path.lineTo(x, y + height)
-
-    path.close()
-    canvas.drawPath(path, fill=1, stroke=0)
-
-    # Add subtle fade particles below wave edge for "dissolve" effect
-    particle_count = 12
-    for i in range(particle_count):
-        px = x + (width / particle_count) * i + 15
-        # Position particles at varying heights below wave
-        py = y - 5 - (i % 3) * 4
-        particle_size = 2 + (i % 2)
-        particle_opacity = base_opacity * (0.3 - (i % 4) * 0.05)
-
-        if particle_opacity > 0:
-            canvas.setFillColor(Color(r, g, b, particle_opacity))
-            canvas.circle(px, py, particle_size, fill=1, stroke=0)
-
-    canvas.restoreState()
+    # Redirect to diagonal header for clean look
+    draw_diagonal_header(canvas, x, y, width, height, fill_color, angle_degrees=4)
 
 
 def _generate_wobble_sequence(seed: float, count: int) -> list:
@@ -526,6 +495,85 @@ def draw_frosted_panel(canvas, x: float, y: float, width: float, height: float,
             canvas.roundRect(x, y, width, height, corner_radius, fill=0, stroke=1)
         else:
             canvas.rect(x, y, width, height, fill=0, stroke=1)
+
+    canvas.restoreState()
+
+
+def draw_diagonal_cut_panel(canvas, x: float, y: float, width: float, height: float,
+                            cut_angle: float = 15,
+                            fill_color: tuple = (1, 1, 1),
+                            opacity: float = 0.90,
+                            border_color: tuple = None,
+                            border_opacity: float = 0.35,
+                            shadow: bool = True,
+                            shadow_opacity: float = 0.08,
+                            shadow_offset: float = 2,
+                            shadow_blur: float = 4) -> None:
+    """
+    Draw a frosted panel with diagonal cut on bottom-right corner.
+
+    This is the signature "ownable" element that makes Alliance labels recognizable.
+    The cut removes the bottom-right corner at the specified angle.
+
+    Args:
+        canvas: ReportLab canvas object
+        x, y: Position (bottom-left)
+        width, height: Dimensions
+        cut_angle: Angle of the diagonal cut in degrees (default 15°)
+        fill_color: Panel fill color (RGB tuple)
+        opacity: Panel opacity
+        border_color: Optional border color (RGB tuple)
+        border_opacity: Border transparency
+        shadow: Whether to draw drop shadow
+        shadow_opacity: Shadow darkness
+        shadow_offset: Shadow offset in points
+        shadow_blur: Shadow blur radius
+    """
+    canvas.saveState()
+
+    # Calculate cut dimensions for visible diagonal cut
+    # Cut removes bottom-right corner: 22% of height, 25% of width
+    # This creates a clearly visible signature element
+    cut_depth = height * 0.22      # How high up the right edge the cut ends
+    cut_horizontal = width * 0.25  # How far from right edge the cut starts on bottom
+
+    def draw_cut_shape(sx, sy, sw, sh, cut_h, cut_d):
+        """Draw panel with diagonal cut using simple lines (no arcs for reliability)."""
+        path = canvas.beginPath()
+        # Start bottom-left, go clockwise
+        path.moveTo(sx, sy)                           # Bottom-left corner
+        path.lineTo(sx + sw - cut_h, sy)              # Bottom edge to cut start
+        path.lineTo(sx + sw, sy + cut_d)              # Diagonal cut upward
+        path.lineTo(sx + sw, sy + sh)                 # Right edge to top
+        path.lineTo(sx, sy + sh)                      # Top edge
+        path.lineTo(sx, sy)                           # Left edge back to start
+        path.close()
+        return path
+
+    # Draw shadow
+    if shadow:
+        for i in range(3, 0, -1):
+            layer_t = i / 3
+            layer_opacity = shadow_opacity * (1 - layer_t * 0.5)
+            canvas.setFillColor(Color(0, 0, 0, layer_opacity))
+            path = draw_cut_shape(
+                x + shadow_offset * layer_t,
+                y - shadow_offset * layer_t,
+                width, height, cut_horizontal, cut_depth
+            )
+            canvas.drawPath(path, fill=1, stroke=0)
+
+    # Draw main panel
+    canvas.setFillColor(Color(*fill_color[:3], opacity))
+    path = draw_cut_shape(x, y, width, height, cut_horizontal, cut_depth)
+    canvas.drawPath(path, fill=1, stroke=0)
+
+    # Draw border
+    if border_color:
+        canvas.setStrokeColor(Color(*border_color[:3], border_opacity))
+        canvas.setLineWidth(1)
+        path = draw_cut_shape(x, y, width, height, cut_horizontal, cut_depth)
+        canvas.drawPath(path, fill=0, stroke=1)
 
     canvas.restoreState()
 

@@ -271,7 +271,7 @@ ORGANIC_COLORS = {
     "brand_charcoal": (0.129, 0.137, 0.145),     # #212325 - Footer/dark text
 
     # HEADER (consistent across ALL labels)
-    "header_purple": (0.373, 0.349, 0.969),      # #5F59F7 - Always this
+    "header_purple": (0.18, 0.12, 0.25),         # Deep eggplant - nearly black with purple undertone
 
     # Warm zone (top-left) - legacy for gradients
     "warm_white": (1.0, 0.973, 0.941),           # #FFF8F0
@@ -344,7 +344,7 @@ ORGANIC_FONT_SIZES = {
 }
 
 # GHS settings for organic style
-ORGANIC_GHS_SIZE = 37  # +15% for visibility at 3 feet (was 32)
+ORGANIC_GHS_SIZE = 43  # +15% larger for visibility (was 37)
 ORGANIC_GHS_GAP = 4
 
 # Layered depth settings - blobs at different opacities for dimensional feel

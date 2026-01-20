@@ -52,12 +52,9 @@ from src.components.barcode import draw_barcode
 from src.components.nfpa import draw_nfpa_diamond
 from src.components.qrcode import draw_qr_code
 from src.utils.organic_shapes import (
-    draw_diagonal_gradient_v2,
-    draw_organic_blob,
-    draw_dissolving_header,
+    draw_diagonal_header,
     draw_frosted_panel,
-    draw_floating_pill,
-    get_blob_positions,
+    draw_diagonal_cut_panel,
 )
 
 # Register fonts
@@ -66,7 +63,7 @@ _fonts_registered = False
 
 
 def _register_fonts():
-    """Register Barlow + JetBrains Mono fonts."""
+    """Register Barlow + JetBrains Mono + Anton fonts."""
     global _fonts_registered
     if _fonts_registered:
         return
@@ -75,6 +72,7 @@ def _register_fonts():
     barlow_bold = FONTS_DIR / "Barlow-Bold.ttf"
     jetbrains_regular = FONTS_DIR / "JetBrainsMono-Regular.ttf"
     jetbrains_bold = FONTS_DIR / "JetBrainsMono-Bold.ttf"
+    anton_regular = FONTS_DIR / "Anton-Regular.ttf"
 
     if barlow_regular.exists() and barlow_bold.exists():
         pdfmetrics.registerFont(TTFont("Barlow", str(barlow_regular)))
@@ -84,6 +82,10 @@ def _register_fonts():
         pdfmetrics.registerFont(TTFont("JetBrainsMono", str(jetbrains_regular)))
         pdfmetrics.registerFont(TTFont("JetBrainsMono-Bold", str(jetbrains_bold)))
 
+    # Anton for hero product names (bold condensed)
+    if anton_regular.exists():
+        pdfmetrics.registerFont(TTFont("Anton", str(anton_regular)))
+
     _fonts_registered = True
 
 
@@ -92,6 +94,7 @@ FONTS = {
     "regular": "Barlow",
     "mono": "JetBrainsMono",
     "mono_bold": "JetBrainsMono-Bold",
+    "hero": "Anton",  # Bold condensed for product names
 }
 
 
@@ -231,25 +234,15 @@ class OrganicFlowLabelRenderer:
 
     def _draw_background_gradient(self):
         """
-        Draw visible warm-to-cool diagonal gradient.
+        Draw clean white background.
 
-        Uses product family colors for distinctive look.
-        The gradient should be FELT, not barely perceptible.
+        Dark header + white content + black footer creates enough visual interest.
+        No diagonal gradient or stripes needed.
         """
-        colors = self.family_colors
-
-        # Use more saturated mid-point colors for visible transition
-        # warm_secondary is the peak warmth, cool_secondary is the peak cool
-        draw_diagonal_gradient_v2(
-            self.c,
-            0, 0,
-            LABEL_WIDTH, LABEL_HEIGHT,
-            warm_color=colors["warm_secondary"],    # Start with more saturated warm
-            cool_color=colors["cool_secondary"],
-            mid_warm=colors["warm_primary"],        # Transition through lighter warm
-            mid_cool=colors["cool_secondary"],
-            steps=100  # More steps for smoother gradient
-        )
+        c = self.c
+        # Clean white background
+        c.setFillColor(Color(1, 1, 1))
+        c.rect(0, 0, LABEL_WIDTH, LABEL_HEIGHT, fill=1, stroke=0)
 
     def _compute_hero_safe_zone(self) -> tuple:
         """
@@ -333,84 +326,34 @@ class OrganicFlowLabelRenderer:
 
     def _draw_organic_blobs(self):
         """
-        Draw prominent organic blobs that span across columns.
+        Blobs disabled - clean white background is sufficient.
 
-        Uses product family blob signature for distinctive arrangement.
-        Blobs are hand-crafted bezier shapes with watercolor/ink drop feel.
-        Blobs are adjusted to avoid the hero safe zone (product name area).
+        Dark header + white content + black footer creates enough visual interest.
+        The diagonal elements (header edge, data card cut) are the signature.
         """
-        colors = self.family_colors
-        signature = self.blob_signature
-
-        # Get blob positions based on family signature
-        positions = get_blob_positions(
-            signature["arrangement"],
-            LABEL_WIDTH,
-            LABEL_HEIGHT,
-            scale=signature["primary_blob_scale"]
-        )
-
-        # Compute hero safe zone to avoid
-        safe_zone = self._compute_hero_safe_zone()
-
-        # Blob colors: very subtle, supporting cast only
-        blob_colors = [
-            colors["warm_primary"],  # Lighter color
-            colors["cool_secondary"],
-        ]
-
-        # Opacities: barely visible - 6-8% max
-        opacities = [0.06, 0.05]
-
-        for i, pos in enumerate(positions):
-            # Unpack position - now includes blob_style
-            if len(pos) == 6:
-                cx, cy, w, h, rot, blob_style = pos
-            else:
-                cx, cy, w, h, rot = pos
-                blob_style = "watercolor"
-
-            # Adjust blob position to avoid hero safe zone
-            is_primary = (i == 0)  # First blob is primary
-            cx, cy = self._adjust_blob_for_safe_zone(cx, cy, w, h, safe_zone, is_primary)
-
-            color = blob_colors[i % len(blob_colors)]
-            opacity = opacities[i % len(opacities)]
-
-            draw_organic_blob(
-                self.c,
-                center_x=cx,
-                center_y=cy,
-                width=w,
-                height=h,
-                rotation=rot,
-                fill_color=color,
-                opacity=opacity,
-                blob_style=blob_style
-            )
+        pass  # No blobs - clean industrial look
 
     def _draw_header(self):
         """
-        Draw dissolving header with proper bezier wave curves.
+        Draw header with clean diagonal bottom edge.
 
-        Sharp at top, organic curved edge at bottom that melts into content.
-        ALWAYS uses brand purple - this is the brand anchor across all products.
+        Sharp at top, clean diagonal edge at bottom sloping down left to right.
+        This creates architectural/industrial feel echoing the diagonal cut panel.
+        ALWAYS uses deep eggplant purple - brand anchor across all products.
         """
         c = self.c
 
-        # ALWAYS use brand purple - never changes per family
-        # This is the brand anchor that stays consistent
+        # Deep eggplant purple - nearly black with purple undertone
         header_color = (*ORGANIC_COLORS["header_purple"], 0.95)
 
-        draw_dissolving_header(
+        draw_diagonal_header(
             c,
             x=0,
             y=self.header_bottom,
             width=LABEL_WIDTH,
             height=self.header_height + self.margin,
             fill_color=header_color,
-            wave_depth=22,  # Prominent waves
-            wave_count=4
+            angle_degrees=4  # Clean diagonal slope down from left to right
         )
 
         # Company logo (left side)
@@ -513,14 +456,15 @@ class OrganicFlowLabelRenderer:
 
         card_height = card_content_height + nfpa_height
 
-        # Draw frosted glass card with shadow
+        # Draw diagonal cut panel (signature element) with shadow
         card_y = y_top - card_height
-        draw_frosted_panel(
+        draw_diagonal_cut_panel(
             c,
             x, card_y,
             col_w - 4, card_height,
+            cut_angle=15,  # 15° diagonal cut on bottom-right
+            fill_color=(1, 1, 1),
             opacity=0.90,  # Frosted: 0.88-0.92 so gradient shows slightly
-            corner_radius=4,
             border_color=colors["accent"],
             border_opacity=0.35,
             shadow=True,
@@ -632,18 +576,24 @@ class OrganicFlowLabelRenderer:
             product_name_size = sizes["product_name_hero"]
             net_size = sizes["net_contents_us"]
 
-        # Product Name - HERO treatment (clean, no heavy shadow)
-        name_width = stringWidth(self.data.product_name, FONTS["bold"], product_name_size)
+        # Product Name - HERO treatment with Anton font (bold condensed)
+        # Try Anton first, fall back to Barlow-Bold if not available
+        hero_font = FONTS["hero"] if "hero" in FONTS else FONTS["bold"]
+        try:
+            name_width = stringWidth(self.data.product_name, hero_font, product_name_size)
+        except KeyError:
+            hero_font = FONTS["bold"]
+            name_width = stringWidth(self.data.product_name, hero_font, product_name_size)
 
         # Scale down if needed
         while name_width > w and product_name_size > sizes["product_name_min"]:
             product_name_size -= 1
-            name_width = stringWidth(self.data.product_name, FONTS["bold"], product_name_size)
+            name_width = stringWidth(self.data.product_name, hero_font, product_name_size)
 
-        # Draw main product name - clean text, no outline/shadow
+        # Draw main product name - Anton bold condensed for industrial feel
         # Premium = simple + confident, not busy
         c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
-        c.setFont(FONTS["bold"], product_name_size)
+        c.setFont(hero_font, product_name_size)
         c.drawString(x, y - product_name_size, self.data.product_name)
         y -= product_name_size + 8
 
@@ -719,14 +669,14 @@ class OrganicFlowLabelRenderer:
         sizes = ORGANIC_FONT_SIZES
 
         if not self.data.hazcom_applicable:
-            # Non-hazmat: Draw proper NON-HAZARDOUS panel
-            # Sized to balance with hazmat panel: 1.5" W × 1.2" H = 108pt × 86pt
+            # Non-hazmat: Typography-only NON-HAZARDOUS panel
+            # NO icons, NO shields, NO checkmarks - typography does all the work
             badge_width = 108
-            badge_height = 86
+            badge_height = 76  # Slightly shorter without icon
             badge_x = LABEL_WIDTH - self.margin - badge_width - 4
             badge_y = self.main_top - badge_height - 8
 
-            # Use teal/green for safety (NOT red/orange/yellow which indicate hazard)
+            # Use teal for safety (NOT red/orange/yellow which indicate hazard)
             safe_color = (0.18, 0.55, 0.45)  # Teal green
 
             # Frosted badge panel
@@ -744,35 +694,26 @@ class OrganicFlowLabelRenderer:
                 shadow_blur=2
             )
 
-            # Large checkmark circle (prominent, identifiable at 2 feet)
-            circle_x = badge_x + badge_width / 2
-            circle_y = badge_y + badge_height - 28
-            circle_r = 18  # Larger circle
-            c.setFillColor(Color(*safe_color, 0.12))
-            c.circle(circle_x, circle_y, circle_r, fill=1, stroke=0)
-            c.setStrokeColor(Color(*safe_color))
-            c.setLineWidth(2)
-            c.circle(circle_x, circle_y, circle_r, fill=0, stroke=1)
-
-            # Large checkmark inside circle
-            c.setStrokeColor(Color(*safe_color))
-            c.setLineWidth(3)
-            path = c.beginPath()
-            path.moveTo(circle_x - 8, circle_y)
-            path.lineTo(circle_x - 2, circle_y - 6)
-            path.lineTo(circle_x + 10, circle_y + 8)
-            c.drawPath(path, fill=0, stroke=1)
-
-            # "NON-HAZARDOUS" in bold 14pt (identifiable at 2 feet in 2 seconds)
+            # "NON-" on first line, "HAZARDOUS" on second line
+            # Bold 14pt teal - typography does all the work
             c.setFont(FONTS["bold"], 14)
             c.setFillColor(Color(*safe_color))
-            c.drawCentredString(badge_x + badge_width / 2, badge_y + 28, "NON-HAZARDOUS")
+            c.drawCentredString(badge_x + badge_width / 2, badge_y + badge_height - 22, "NON-")
+            c.drawCentredString(badge_x + badge_width / 2, badge_y + badge_height - 38, "HAZARDOUS")
 
-            # "No GHS classification required" in 8pt
-            c.setFont(FONTS["regular"], 8)
-            c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
-            c.drawCentredString(badge_x + badge_width / 2, badge_y + 14, "No GHS classification")
-            c.drawCentredString(badge_x + badge_width / 2, badge_y + 5, "required")
+            # Subtle teal underline below the text
+            underline_width = 70
+            underline_x = badge_x + (badge_width - underline_width) / 2
+            c.setStrokeColor(Color(*safe_color, 0.6))
+            c.setLineWidth(1.5)
+            c.line(underline_x, badge_y + badge_height - 44,
+                   underline_x + underline_width, badge_y + badge_height - 44)
+
+            # "No GHS classification required" in smaller text below
+            c.setFont(FONTS["regular"], 7)
+            c.setFillColor(Color(*ORGANIC_COLORS["text_muted"]))
+            c.drawCentredString(badge_x + badge_width / 2, badge_y + 16, "No GHS classification")
+            c.drawCentredString(badge_x + badge_width / 2, badge_y + 7, "required")
 
             return
 
@@ -830,7 +771,7 @@ class OrganicFlowLabelRenderer:
 
             content_y -= rows * (ghs_size + ghs_gap) + 4
 
-        # Signal word
+        # Signal word with colored background badge
         if self.data.signal_word:
             signal = (
                 self.data.signal_word.value
@@ -840,25 +781,33 @@ class OrganicFlowLabelRenderer:
             signal_text = signal.upper()
             signal_size = sizes["signal_word"]
 
-            c.setFont(FONTS["bold"], signal_size)
-            if signal_text == "DANGER":
-                c.setFillColor(Color(*ORGANIC_COLORS["danger_red"]))
-            else:
-                c.setFillColor(Color(*ORGANIC_COLORS["warning_amber"]))
-
-            c.drawString(content_x, content_y - signal_size, signal_text)
-
-            # Underline
+            # Calculate badge dimensions
             text_w = stringWidth(signal_text, FONTS["bold"], signal_size)
-            if signal_text == "DANGER":
-                c.setStrokeColor(Color(*ORGANIC_COLORS["danger_red"]))
-            else:
-                c.setStrokeColor(Color(*ORGANIC_COLORS["warning_amber"]))
-            c.setLineWidth(1.5)
-            c.line(content_x, content_y - signal_size - 2,
-                   content_x + text_w, content_y - signal_size - 2)
+            badge_padding_h = 8  # Horizontal padding
+            badge_padding_v = 4  # Vertical padding
+            badge_width = text_w + badge_padding_h * 2
+            badge_height = signal_size + badge_padding_v * 2
+            badge_radius = 3
 
-            content_y -= signal_size + 8
+            # Draw colored background badge
+            badge_x = content_x
+            badge_y = content_y - badge_height
+
+            if signal_text == "DANGER":
+                # Red background (#D91919) with white text
+                c.setFillColor(Color(0.851, 0.098, 0.098))  # #D91919
+                c.roundRect(badge_x, badge_y, badge_width, badge_height, badge_radius, fill=1, stroke=0)
+                c.setFillColor(Color(1, 1, 1))  # White text
+            else:
+                # Amber background (#F59E0B) with dark text
+                c.setFillColor(Color(0.961, 0.620, 0.043))  # #F59E0B
+                c.roundRect(badge_x, badge_y, badge_width, badge_height, badge_radius, fill=1, stroke=0)
+                c.setFillColor(Color(0.1, 0.1, 0.1))  # Dark text
+
+            c.setFont(FONTS["bold"], signal_size)
+            c.drawString(badge_x + badge_padding_h, badge_y + badge_padding_v, signal_text)
+
+            content_y -= badge_height + 8
 
         # H-Statements (with codes visible)
         if self.data.hazard_statements:
@@ -969,46 +918,40 @@ class OrganicFlowLabelRenderer:
             )
 
     def _draw_footer(self):
-        """Draw floating pill footer with emergency contact and address."""
+        """Draw full-bleed black footer bar with emergency info."""
         c = self.c
 
-        pill_width = LABEL_WIDTH * ORGANIC_FOOTER_PILL_WIDTH_PCT
-        pill_height = self.footer_height + 4  # Increased by 8pts for address line
-        pill_x = (LABEL_WIDTH - pill_width) / 2
-        pill_y = self.margin + 2
+        # Full-width black bar - no gaps at edges
+        bar_height = self.footer_height + 6
+        bar_y = 0  # Start at bottom edge
+        bar_color = (0.08, 0.08, 0.10)  # Near-black
 
-        draw_floating_pill(
-            c,
-            pill_x, pill_y,
-            pill_width, pill_height,
-            fill_color=ORGANIC_COLORS["frosted_white"],
-            opacity=0.92,
-            border_color=ORGANIC_COLORS["frosted_border"],
-            border_opacity=0.5,
-            shadow=True
-        )
+        # Draw the full-bleed footer bar
+        c.setFillColor(Color(*bar_color))
+        c.rect(0, bar_y, LABEL_WIDTH, bar_height, fill=1, stroke=0)
 
-        # Line 1: Emergency / CHEMTEL / Website
-        text_y1 = pill_y + pill_height / 2 + 2
+        # Content positioning
+        content_margin = 12
+        text_y1 = bar_y + bar_height / 2 + 3
 
-        # "Emergency:" in BRAND PURPLE - consistent branding
+        # "Emergency:" in RED (#D92525) as accent
         c.setFont(FONTS["bold"], 7)
-        c.setFillColor(Color(*ORGANIC_COLORS["brand_purple"]))
-        c.drawString(pill_x + 12, text_y1, "Emergency:")
+        c.setFillColor(Color(0.851, 0.145, 0.145))  # #D92525
+        c.drawString(content_margin, text_y1, "Emergency:")
 
-        # CHEMTEL number in brand charcoal
+        # CHEMTEL number in white
         c.setFont(FONTS["regular"], 7)
-        c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
-        c.drawString(pill_x + 60, text_y1, f"CHEMTEL {self.data.chemtel_number}")
+        c.setFillColor(Color(1, 1, 1))
+        c.drawString(content_margin + 52, text_y1, f"CHEMTEL {self.data.chemtel_number}")
 
-        # Website
-        c.drawRightString(pill_x + pill_width - 12, text_y1, COMPANY_INFO["website"])
+        # Website right-aligned in white
+        c.drawRightString(LABEL_WIDTH - content_margin, text_y1, COMPANY_INFO["website"])
 
-        # Line 2: Company address (centered, smaller font)
-        text_y2 = pill_y + pill_height / 2 - 8
+        # Address centered in muted gray
+        text_y2 = bar_y + bar_height / 2 - 7
         c.setFont(FONTS["regular"], 6)
-        c.setFillColor(Color(*ORGANIC_COLORS["text_muted"]))
-        c.drawCentredString(pill_x + pill_width / 2, text_y2, COMPANY_INFO["address"])
+        c.setFillColor(Color(0.5, 0.5, 0.52))  # Muted gray
+        c.drawCentredString(LABEL_WIDTH / 2, text_y2, COMPANY_INFO["address"])
 
     def _wrap_text(self, text: str, font_name: str, font_size: float, max_width: float) -> list:
         """Simple text wrapping."""
