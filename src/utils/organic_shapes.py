@@ -532,10 +532,10 @@ def draw_diagonal_cut_panel(canvas, x: float, y: float, width: float, height: fl
     canvas.saveState()
 
     # Calculate cut dimensions for visible diagonal cut
-    # Cut removes bottom-right corner: 22% of height, 25% of width
-    # This creates a clearly visible signature element
-    cut_depth = height * 0.22      # How high up the right edge the cut ends
-    cut_horizontal = width * 0.25  # How far from right edge the cut starts on bottom
+    # Cut removes bottom-right corner: 26% of height, 28% of width
+    # This creates a clearly visible, assertive signature element
+    cut_depth = height * 0.26      # How high up the right edge the cut ends
+    cut_horizontal = width * 0.28  # How far from right edge the cut starts on bottom
 
     def draw_cut_shape(sx, sy, sw, sh, cut_h, cut_d):
         """Draw panel with diagonal cut using simple lines (no arcs for reliability)."""

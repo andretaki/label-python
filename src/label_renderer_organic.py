@@ -200,8 +200,8 @@ class OrganicFlowLabelRenderer:
         self.header_bottom = LABEL_HEIGHT - self.margin - self.header_height
         self.footer_top = self.margin + self.footer_height
 
-        # Main content area (leave room for header waves)
-        self.main_top = self.header_bottom - 15
+        # Main content area (extra clearance for diagonal header slope)
+        self.main_top = self.header_bottom - 22
         self.main_bottom = self.footer_top + 8
 
     def render(self, output_path: Path, lot_number: str = None) -> Path:
@@ -447,7 +447,7 @@ class OrganicFlowLabelRenderer:
             content_lines -= 1
 
         line_height = 16
-        padding = 12  # Increased padding for better text clearance
+        padding = 16  # Increased padding for better text clearance
         card_content_height = content_lines * line_height + padding * 2
 
         nfpa_height = 0
@@ -549,6 +549,9 @@ class OrganicFlowLabelRenderer:
             c.setFont(FONTS["regular"], 5)
             c.setFillColor(Color(*ORGANIC_COLORS["text_muted"]))
             c.drawCentredString(qr_x + qr_size / 2, qr_y + qr_size + 3, "Scan for SDS")
+            # White border around QR for clean separation
+            c.setFillColor(Color(1, 1, 1))
+            c.rect(qr_x - 2, qr_y - 2, qr_size + 4, qr_size + 4, fill=1, stroke=0)
             draw_qr_code(c, self.data.sds_url, qr_x, qr_y, qr_size)
 
     def _draw_column_2(self):
@@ -595,13 +598,13 @@ class OrganicFlowLabelRenderer:
         c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
         c.setFont(hero_font, product_name_size)
         c.drawString(x, y - product_name_size, self.data.product_name)
-        y -= product_name_size + 8
+        y -= product_name_size + 14
 
-        # Grade/concentration
+        # Grade/concentration - darker than metric for hierarchy
         if self.data.grade_or_concentration:
             grade_size = sizes["grade"] + (2 if not self.has_hazmat else 0)
             c.setFont(FONTS["regular"], grade_size)
-            c.setFillColor(Color(*ORGANIC_COLORS["text_secondary"]))
+            c.setFillColor(Color(*ORGANIC_COLORS["text_dark"]))
             c.drawString(x, y - grade_size, self.data.grade_or_concentration)
             y -= grade_size + 16
 
@@ -622,7 +625,7 @@ class OrganicFlowLabelRenderer:
         net_width = stringWidth(self.data.net_contents_us, FONTS["bold"], net_size)
         c.setStrokeColor(Color(*colors["accent"], 0.7))
         c.setLineWidth(3.0 if not self.has_hazmat else 2.5)
-        c.line(x, y - net_size - 5, x + net_width, y - net_size - 5)
+        c.line(x, y - net_size - 7, x + net_width, y - net_size - 7)
 
         y -= net_size + 10
 
@@ -676,16 +679,16 @@ class OrganicFlowLabelRenderer:
             badge_x = LABEL_WIDTH - self.margin - badge_width - 4
             badge_y = self.main_top - badge_height - 8
 
-            # Use teal for safety (NOT red/orange/yellow which indicate hazard)
-            safe_color = (0.18, 0.55, 0.45)  # Teal green
+            # Muted sage for safety (NOT red/orange/yellow which indicate hazard)
+            safe_color = (0.29, 0.48, 0.44)  # Muted sage
 
-            # Frosted badge panel
+            # Frosted badge panel with sharper corners
             draw_frosted_panel(
                 c,
                 badge_x, badge_y,
                 badge_width, badge_height,
                 opacity=0.94,
-                corner_radius=6,
+                corner_radius=4,
                 border_color=safe_color,
                 border_opacity=0.5,
                 shadow=True,
@@ -924,7 +927,7 @@ class OrganicFlowLabelRenderer:
         # Full-width black bar - no gaps at edges
         bar_height = self.footer_height + 6
         bar_y = 0  # Start at bottom edge
-        bar_color = (0.08, 0.08, 0.10)  # Near-black
+        bar_color = (0.10, 0.08, 0.12)  # Near-black with purple tint
 
         # Draw the full-bleed footer bar
         c.setFillColor(Color(*bar_color))
@@ -949,7 +952,7 @@ class OrganicFlowLabelRenderer:
 
         # Address centered in muted gray
         text_y2 = bar_y + bar_height / 2 - 7
-        c.setFont(FONTS["regular"], 6)
+        c.setFont(FONTS["regular"], 6.5)
         c.setFillColor(Color(0.5, 0.5, 0.52))  # Muted gray
         c.drawCentredString(LABEL_WIDTH / 2, text_y2, COMPANY_INFO["address"])
 
