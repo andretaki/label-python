@@ -1,0 +1,350 @@
+{
+  "id": "57a57494-46e8-459f-bcab-2a600399078c",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.print_jobs": {
+      "name": "print_jobs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "sku": {
+          "name": "sku",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_name": {
+          "name": "product_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lot_number": {
+          "name": "lot_number",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "printer_name": {
+          "name": "printer_name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "printed_at": {
+          "name": "printed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "printed_by": {
+          "name": "printed_by",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_print_jobs_date": {
+          "name": "idx_print_jobs_date",
+          "columns": [
+            {
+              "expression": "printed_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_print_jobs_sku": {
+          "name": "idx_print_jobs_sku",
+          "columns": [
+            {
+              "expression": "sku",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.products": {
+      "name": "products",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sku": {
+          "name": "sku",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "product_name": {
+          "name": "product_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "grade_or_concentration": {
+          "name": "grade_or_concentration",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "product_family": {
+          "name": "product_family",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "package_type": {
+          "name": "package_type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "net_contents_us": {
+          "name": "net_contents_us",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "net_contents_metric": {
+          "name": "net_contents_metric",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cas_number": {
+          "name": "cas_number",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "upc_gtin12": {
+          "name": "upc_gtin12",
+          "type": "varchar(12)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hazcom_applicable": {
+          "name": "hazcom_applicable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "ghs_pictograms": {
+          "name": "ghs_pictograms",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "signal_word": {
+          "name": "signal_word",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hazard_statements": {
+          "name": "hazard_statements",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "precaution_statements": {
+          "name": "precaution_statements",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dot_regulated": {
+          "name": "dot_regulated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "un_number": {
+          "name": "un_number",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "proper_shipping_name": {
+          "name": "proper_shipping_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hazard_class": {
+          "name": "hazard_class",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "packing_group": {
+          "name": "packing_group",
+          "type": "varchar(5)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nfpa_health": {
+          "name": "nfpa_health",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nfpa_fire": {
+          "name": "nfpa_fire",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nfpa_reactivity": {
+          "name": "nfpa_reactivity",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nfpa_special": {
+          "name": "nfpa_special",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sds_url": {
+          "name": "sds_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_products_upc": {
+          "name": "idx_products_upc",
+          "columns": [
+            {
+              "expression": "upc_gtin12",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_products_sku": {
+          "name": "idx_products_sku",
+          "columns": [
+            {
+              "expression": "sku",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "products_sku_unique": {
+          "name": "products_sku_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "sku"
+          ]
+        },
+        "products_upc_gtin12_unique": {
+          "name": "products_upc_gtin12_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "upc_gtin12"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

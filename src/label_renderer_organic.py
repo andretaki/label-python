@@ -370,26 +370,17 @@ class OrganicFlowLabelRenderer:
         else:
             logo_path = logo_default
 
-        logo_y = self.header_bottom + self.header_height / 2 - 12
+        logo_y = self.header_bottom + self.header_height / 2 - 22
         if logo_path.exists():
             c.drawImage(
                 str(logo_path),
                 self.margin + 4,
                 logo_y,
-                width=50,
-                height=28,
+                width=100,
+                height=44,
                 preserveAspectRatio=True,
                 mask="auto",
             )
-
-        # Company name (white text on header)
-        c.setFont(FONTS["bold"], 11)
-        c.setFillColor(Color(1, 1, 1))
-        c.drawString(
-            self.margin + 60,
-            self.header_bottom + self.header_height / 2 - 4,
-            COMPANY_INFO["name"]
-        )
 
         # Barcode in white card (right side of header) - sized for scan reliability
         if self.data.upc_gtin12 and len(self.data.upc_gtin12) == 12:

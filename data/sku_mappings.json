@@ -1,0 +1,28 @@
+{
+  "mappings": [
+    {
+      "sku_pattern": "AC-IPA-99-1GAL",
+      "chemical_id": "isopropyl-alcohol-99"
+    },
+    {
+      "sku_pattern": "AC-IPA-99-5GAL",
+      "chemical_id": "isopropyl-alcohol-99"
+    },
+    {
+      "sku_pattern": "AC-IPA-99-55GAL",
+      "chemical_id": "isopropyl-alcohol-99"
+    }
+  ],
+  "prefix_rules": [
+    {
+      "prefix": "AC-IPA-99-",
+      "chemical_id": "isopropyl-alcohol-99",
+      "description": "All 99% Isopropyl Alcohol variants"
+    },
+    {
+      "prefix": "AC-IPA-70-",
+      "chemical_id": "isopropyl-alcohol-70",
+      "description": "All 70% Isopropyl Alcohol variants"
+    }
+  ]
+}

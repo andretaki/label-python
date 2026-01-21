@@ -107,9 +107,9 @@ def _draw_frosted_glass_panel(canvas, x: float, y: float, width: float, height: 
     canvas.setFillColor(Color(1, 1, 1, settings["opacity"]))
     canvas.roundRect(x, y, width, height, corner_radius, fill=1, stroke=0)
 
-    # Draw subtle teal accent border
-    teal = ORGANIC_COLORS["cool_teal"]
-    canvas.setStrokeColor(Color(*teal, settings["border_opacity"]))
+    # Draw subtle purple accent border (brand color)
+    purple = ORGANIC_COLORS["brand_purple"]
+    canvas.setStrokeColor(Color(*purple, settings["border_opacity"]))
     canvas.setLineWidth(settings["border_width"])
     canvas.roundRect(x, y, width, height, corner_radius, fill=0, stroke=1)
 

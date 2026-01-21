@@ -1,0 +1,46 @@
+{
+  "chemical_id": "isopropyl-alcohol-99",
+  "chemical_name": "Isopropyl Alcohol",
+  "cas_number": "67-63-0",
+  "aliases": [
+    "IPA",
+    "Isopropanol",
+    "2-Propanol",
+    "Rubbing Alcohol"
+  ],
+  "product_family": "solvents",
+  "hazcom_applicable": true,
+  "ghs_pictograms": ["GHS02", "GHS07"],
+  "signal_word": "Danger",
+  "hazard_statements": [
+    "H225 Highly flammable liquid and vapor",
+    "H319 Causes serious eye irritation",
+    "H336 May cause drowsiness or dizziness"
+  ],
+  "precaution_statements": [
+    "P210 Keep away from heat, hot surfaces, sparks, open flames and other ignition sources. No smoking.",
+    "P233 Keep container tightly closed.",
+    "P240 Ground and bond container and receiving equipment.",
+    "P241 Use explosion-proof electrical/ventilating/lighting equipment.",
+    "P242 Use non-sparking tools.",
+    "P243 Take action to prevent static discharges.",
+    "P264 Wash hands thoroughly after handling.",
+    "P280 Wear protective gloves/protective clothing/eye protection/face protection.",
+    "P303+P361+P353 IF ON SKIN (or hair): Take off immediately all contaminated clothing. Rinse skin with water.",
+    "P305+P351+P338 IF IN EYES: Rinse cautiously with water for several minutes. Remove contact lenses, if present and easy to do. Continue rinsing.",
+    "P337+P313 If eye irritation persists: Get medical advice/attention.",
+    "P370+P378 In case of fire: Use water spray, foam, dry chemical or CO2 to extinguish.",
+    "P403+P235 Store in a well-ventilated place. Keep cool.",
+    "P501 Dispose of contents/container in accordance with local regulations."
+  ],
+  "dot_regulated": true,
+  "un_number": "UN1219",
+  "proper_shipping_name": "Isopropanol",
+  "hazard_class": "3",
+  "packing_group": "II",
+  "nfpa_health": 1,
+  "nfpa_fire": 3,
+  "nfpa_reactivity": 0,
+  "nfpa_special": null,
+  "sds_url": "https://alliancechemical.com/sds/isopropyl-alcohol-99.pdf"
+}
