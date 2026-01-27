@@ -495,10 +495,17 @@ class OrganicFlowLabelRenderer:
             c.drawString(text_x, text_y - 5.5, "LOT")
             text_y -= 7
 
-            c.setFont(FONTS["mono"], sizes["lot"])
+            # Scale LOT font to fit within card
+            lot_size = sizes["lot"]
+            lot_width = stringWidth(self.data.lot_number, FONTS["mono"], lot_size)
+            while lot_width > max_text_width and lot_size > 6:
+                lot_size -= 0.5
+                lot_width = stringWidth(self.data.lot_number, FONTS["mono"], lot_size)
+
+            c.setFont(FONTS["mono"], lot_size)
             c.setFillColor(Color(*ORGANIC_COLORS["text_secondary"]))
-            c.drawString(text_x, text_y - sizes["lot"], self.data.lot_number)
-            text_y -= sizes["lot"] + 5
+            c.drawString(text_x, text_y - lot_size, self.data.lot_number)
+            text_y -= lot_size + 5
 
         # CAS: Light weight, smallest - tertiary info
         if self.data.cas_number:

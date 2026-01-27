@@ -1,0 +1,40 @@
+{
+  "chemical_id": "phosphoric-acid-10",
+  "chemical_name": "Phosphoric Acid",
+  "cas_number": "7664-38-2",
+  "aliases": [
+    "Orthophosphoric acid",
+    "Phosphoric acid solution"
+  ],
+  "product_family": "acids",
+  "hazcom_applicable": true,
+  "ghs_pictograms": ["GHS05"],
+  "signal_word": "Danger",
+  "hazard_statements": [
+    "H313 May be harmful in contact with skin",
+    "H314 Causes severe skin burns and eye damage"
+  ],
+  "precaution_statements": [
+    "P260 Do not breathe dusts or mists.",
+    "P264 Wash hands thoroughly after handling.",
+    "P280 Wear protective gloves/protective clothing/eye protection/face protection.",
+    "P301+P330+P331 IF SWALLOWED: Rinse mouth. Do not induce vomiting.",
+    "P303+P361+P353 IF ON SKIN (or hair): Take off immediately all contaminated clothing. Rinse skin with water/shower.",
+    "P304+P340 IF INHALED: Remove person to fresh air and keep comfortable for breathing.",
+    "P305+P351+P338 IF IN EYES: Rinse cautiously with water for several minutes. Remove contact lenses, if present and easy to do. Continue rinsing.",
+    "P310 Immediately call a POISON CENTER/doctor/physician.",
+    "P363 Wash contaminated clothing before reuse.",
+    "P405 Store locked up.",
+    "P501 Dispose of contents/container in accordance with local regulations."
+  ],
+  "dot_regulated": true,
+  "un_number": "UN1805",
+  "proper_shipping_name": "Phosphoric acid solution",
+  "hazard_class": "8",
+  "packing_group": "III",
+  "nfpa_health": 3,
+  "nfpa_fire": 0,
+  "nfpa_reactivity": 0,
+  "nfpa_special": null,
+  "sds_url": null
+}
