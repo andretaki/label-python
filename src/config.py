@@ -216,6 +216,21 @@ PACKAGE_TO_TEMPLATE = {
     "tote_330gal": "drum",
     "bag_25lb": "dry",
     "bag_50lb": "dry",
+    "liter_1": "small",
+    "liter_2.5": "small",
+    "liter_amber": "small",
+    "can_5gal": "medium",
+    "bucket_5gal": "medium",
+    "can_5gal_tight": "medium",
+    "carboy_15gal": "drum",
+    "quart_spray": "small",
+    "mylar_bag": "dry",
+    "box": "medium",
+    "box_open": "medium",
+    "pallet_100box": "drum",
+    "round_1": "medium",
+    "round_2": "medium",
+    "tote_side": "drum",
 }
 
 

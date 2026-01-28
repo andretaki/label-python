@@ -43,6 +43,21 @@ class PackageType(str, Enum):
     TOTE_330GAL = "tote_330gal"
     BAG_25LB = "bag_25lb"
     BAG_50LB = "bag_50lb"
+    LITER_1 = "liter_1"
+    LITER_2_5 = "liter_2.5"
+    LITER_AMBER = "liter_amber"
+    CAN_5GAL = "can_5gal"
+    BUCKET_5GAL = "bucket_5gal"
+    CAN_5GAL_TIGHT = "can_5gal_tight"
+    CARBOY_15GAL = "carboy_15gal"
+    QUART_SPRAY = "quart_spray"
+    MYLAR_BAG = "mylar_bag"
+    BOX = "box"
+    BOX_OPEN = "box_open"
+    PALLET_100BOX = "pallet_100box"
+    ROUND_1 = "round_1"
+    ROUND_2 = "round_2"
+    TOTE_SIDE = "tote_side"
 
 
 class SKUData(BaseModel):
